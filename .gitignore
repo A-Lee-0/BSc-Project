@@ -1,3 +1,4 @@
+## Github default C++ gitignore
 # Prerequisites
 *.d
 
@@ -30,3 +31,26 @@
 *.exe
 *.out
 *.app
+
+## GitHub CMake gitignore
+CMakeLists.txt.user
+CMakeCache.txt
+CMakeFiles
+CMakeScripts
+Testing
+Makefile
+cmake_install.cmake
+install_manifest.txt
+compile_commands.json
+CTestTestfile.cmake
+_deps
+
+## Old git repo gitignore
+lib/*
+bin/*
+build
+.DS_Store
+*SGCB.xcodeproj*
+*.idea*
+cmake-build-debug/*
+release/*

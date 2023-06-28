@@ -1,0 +1,31 @@
+cmake_minimum_required(VERSION 3.6)
+set(SOURCE_FILES Network.cpp Strategy.cpp Game.cpp Drawing.cpp Update.cpp)
+add_library(core ${SOURCE_FILES})
+
+find_package(ImageMagick REQUIRED COMPONENTS Magick++ MagickCore MagickWand)
+if(ImageMagick_FOUND)
+    message(STATUS "ImageMagick_INCLUDE_DIRS: ${ImageMagick_INCLUDE_DIRS}")
+    message(STATUS "ImageMagick_LIBARRIES: ${ImageMagick_LIBRARIES}")
+    message(STATUS "ImageMagick_VERSION_STRING: ${ImageMagick_VERSION_STRING}")
+
+    include_directories(${ImageMagick_INCLUDE_DIRS})
+    target_compile_options(core PUBLIC -DMAGICKCORE_HDRI_ENABLE=0 -DMAGICKCORE_QUANTUM_DEPTH=16)
+endif()
+
+find_package(Boost REQUIRED COMPONENTS random filesystem)
+if(Boost_FOUND)
+    message(STATUS "Boost_INCLUDE_DIRS: ${Boost_INCLUDE_DIRS}")
+    message(STATUS "Boost_LIBRARIES: ${Boost_LIBRARIES}")
+    message(STATUS "Boost_VERSION: ${Boost_VERSION}")
+
+    include_directories(${Boost_INCLUDE_DIRS})
+endif()
+
+add_executable(SGCB main.cpp)
+target_link_libraries(SGCB core)
+if(ImageMagick_FOUND)
+    target_link_libraries(SGCB ${ImageMagick_LIBRARIES})
+endif()
+if (Boost_FOUND)
+    target_link_libraries(SGCB ${Boost_LIBRARIES})
+endif()
