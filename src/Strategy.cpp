@@ -4,6 +4,7 @@
 #include <iostream>
 #include "Strategy.h"
 
+
 Strategy * GetStrategyFromStrategyList(StrategyList name) {
     switch (name) {
         case StrategyList::AlwaysDefect:
@@ -176,4 +177,90 @@ void SuspiciousTitForTat::clearMemory() {
 
 StrategyList SuspiciousTitForTat::getName() {
     return this->name;
+}
+
+
+
+
+
+
+// Functions to produce initial strategy arrays.
+double Strategy::radius = 1;
+StrategyList Strategy::centreStrat;
+StrategyList Strategy::surroundingsStrat;
+boost::random::mt19937 Strategy::gen;
+void Strategy::SetRadius(double newRadius){ radius = newRadius; }
+void Strategy::SetCentreStrat(StrategyList newStrat){ centreStrat = newStrat; }
+void Strategy::SetSurroundingsStrat(StrategyList newStrat){ surroundingsStrat = newStrat; }
+void Strategy::SetRNG(boost::random::mt19937 newRNG){ gen = newRNG; }
+
+Strategy* Strategy::centreT4T(std::pair<int,int> coord, std::pair<int,int> dimensions) {
+    int radius2 = 3;
+    int x = coord.first;
+    int y = coord.second;
+
+    if(x*x<radius2 && y*y<radius2)
+        return new AlwaysDefect;
+    else
+        return new TitForTat;
+}
+
+Strategy* Strategy::centre(std::pair<int,int> coord, std::pair<int,int> dimensions) {
+    double radius2 = radius;
+    double x = ((double) coord.first) + 0.5 - ((double) dimensions.first)/2;
+    double y = ((double) coord.second) + 0.5 - ((double) dimensions.second)/2;
+
+    if((double) (x*x + y*y)<radius2 * radius2)
+        return GetStrategyFromStrategyList(centreStrat);
+    return GetStrategyFromStrategyList(surroundingsStrat);
+}
+
+Strategy* Strategy::random(std::pair<int,int>, std::pair<int,int>) {
+    boost::random::uniform_int_distribution<> dist(0,4);
+    switch (StrategyList(dist(gen))) {
+        case StrategyList::AlwaysCooperate:
+            return new AlwaysCooperate;
+        case StrategyList::AlwaysDefect:
+            return new AlwaysDefect;
+        case StrategyList::TitForTat:
+            return new TitForTat;
+        case StrategyList::Titx2ForTat:
+            return new Titx2ForTat;
+        case StrategyList::SuspiciousTitForTat:
+            return new SuspiciousTitForTat;
+    }
+}
+
+/*
+Strategy* Strategy::randomBlocks(std::pair<int,int> position, std::pair<int,int> dimensions){
+    int blocksize = 5;
+    int blockArray[dimensions.first/blocksize +1][dimensions.second/blocksize +1] = {0};
+    for (int i = 0;i != dimensions.first/blocksize +1; i++){
+        for (int j = 0;i != dimensions.second/blocksize +1; i++){
+        }
+    }
+    return new AlwaysCooperate;
+}
+*/
+
+Strategy* Strategy::random_NonST4T(std::pair<int,int>, std::pair<int,int>) {
+    boost::random::uniform_int_distribution<> dist(0,3);
+    switch (StrategyList(dist(gen))) {
+        case StrategyList::AlwaysCooperate:
+            return new AlwaysCooperate;
+        case StrategyList::AlwaysDefect:
+            return new AlwaysDefect;
+        case StrategyList::TitForTat:
+            return new TitForTat;
+        case StrategyList::Titx2ForTat:
+            return new Titx2ForTat;
+    }
+}
+
+Strategy* Strategy::rdT4T (std::pair<int,int>, std::pair<int,int>) {
+    boost::random::uniform_01 <boost::random::mt19937> dist(gen);
+    if (dist() < 0.3)
+        return new TitForTat;
+    else
+        return new AlwaysDefect;
 }

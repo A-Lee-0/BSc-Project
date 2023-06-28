@@ -308,3 +308,20 @@ UpdateList G_GDP::getName() {
     return this->name;
 }
 
+
+
+// Functions to produce initial Update arrays.
+boost::random::mt19937 Update::gen;
+void Update::SetRNG(boost::random::mt19937 newRNG){ gen = newRNG; }
+
+Update* Update::DefaultWithPureGDP(std::pair<int, int> position, std::pair<int, int> dimensions, UpdateList defaultUpdateType){
+    double GDPfraction = 0.1;
+    boost::random::uniform_01 <boost::random::mt19937> dist(gen);
+    if (dist()< GDPfraction)
+        return new G_GDP;
+    return updateFromUpdateType(defaultUpdateType);
+}
+
+Update* Update::Default(std::pair<int, int> position, std::pair<int, int> dimensions, UpdateList defaultUpdateType){
+    return updateFromUpdateType(defaultUpdateType);
+}

@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.6)
-set(SOURCE_FILES Network.cpp Strategy.cpp Game.cpp Drawing.cpp Update.cpp)
+set(SOURCE_FILES Network.cpp Strategy.cpp Game.cpp Drawing.cpp Update.cpp Experiments.cpp)
 add_library(core ${SOURCE_FILES})
 
 find_package(ImageMagick REQUIRED COMPONENTS Magick++ MagickCore MagickWand)

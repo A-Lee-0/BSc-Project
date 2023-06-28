@@ -18,23 +18,8 @@
 #include "SGCB_Config.h"
 #include <ctime>
 
-Strategy * centreT4T(std::pair<int,int>,std::pair<int,int>);
-Strategy * centre(std::pair<int,int>,std::pair<int,int>);
-Strategy * random(std::pair<int,int>, std::pair<int,int>);
-Strategy * random_NonST4T(std::pair<int,int>, std::pair<int,int>);
-Update * DefaultWithPureGDP(std::pair<int, int> position, std::pair<int, int> dimensions, UpdateList defaultUpdateType);
-Update * Default(std::pair<int, int> position, std::pair<int, int> dimensions, UpdateList defaultUpdateType);
-void iteratedRunAllUpdatesForAllGPRs(int maxGPR,int rounds, int iterations, Strategy* strategyFunc(std::pair<int, int>, std::pair<int, int>));
-void runAllUpdatesForAllGPRs(int maxGPR,int rounds, Strategy* strategyFunc(std::pair<int, int>, std::pair<int, int>));
-void runAllUpdatesForAllGPRs_BlockNetwork(int maxGPR,int rounds, Strategy* strategyFunc(std::pair<int, int>, std::pair<int, int>),int blockSize);
-void runAllUpdatesForAllGPRs_CentreNetwork(int maxGPR,int rounds, Strategy* strategyFunc(std::pair<int, int>, std::pair<int, int>),double centreradius);
-//boost::random::mt19937 gen;
-std::time_t startTime;
-boost::random::mt19937 gen(static_cast<unsigned int>(std::time(&startTime)));
-
-StrategyList centreStrat;
-StrategyList surroundingsStrat;
-double radius = 1;
+std::time_t startTime_main;
+boost::random::mt19937 gen(static_cast<unsigned int>(std::time(&startTime_main)));
 
 
 int main() {
@@ -47,6 +32,19 @@ int main() {
     struct tm * now = localtime( & t );
     std::cout << "Time: " << (now->tm_year + 1900) << '-' << (now->tm_mon + 1) << '-' << now->tm_mday << ' '
               << now->tm_hour << ':' << now->tm_min << ':' << now->tm_sec << std::endl;
+
+    //init RNGs
+    Strategy::SetRNG(gen);
+    Update::SetRNG(gen);
+
+    int numRepeatExperiments = 200;
+    int numRoundsPerExperiment = 50;
+    int gamesPerRound = 15;
+    bool saveBitmaps = false;
+    bool returnGlobalData = true;
+
+
+
 //Loop through one updateType
 /*
     UpdateList updateType = UpdateList::G_GDP;
@@ -104,7 +102,7 @@ int main() {
         std::cout << updateString << i << std::endl;
 
         std::string filepath = "IteratedDataSet3\\" + updateString + "\\15gpr\\iter" + std::to_string(i);
-        Network network = Network(100,100,random, updateType, filepath);
+        Network network = Network(100,100,Strategy::random,updateType, filepath);
         network.connectNearestNeighbours();
         playNRounds(network, 50, 15, false, true);
     }
@@ -137,7 +135,7 @@ void runAllUpdatesForAllGPRs(int maxGPR,int rounds, Strategy* strategyFunc(std::
             std::cout << i << std::endl;
             std::string filepath = "NewDataSet\\gprTest_GDPSubPop0-1" + updateString + "\\random_" + std::to_string(i) + "gpr";
             //Network network = Network(100, 100, random, updateType, filepath);
-            Network network = Network(100, 100, strategyFunc, DefaultWithPureGDP, filepath, updateType);
+            Network network = Network(100, 100, strategyFunc, Update::DefaultWithPureGDP, filepath, updateType);
             network.connectNearestNeighbours();
             playNRounds(network, rounds, i, true, true);
 //            ++showGPRProg;
@@ -161,7 +159,7 @@ void iteratedRunAllUpdatesForAllGPRs(int maxGPR,int rounds, int iterations, Stra
             for (int k = 0; k!= iterations; k++) {
                 std::cout << i << std::endl;
                 std::string filepath = "IteratedDataSet\\" + updateString + "\\" + std::to_string(i) + "gpr\\iter" + std::to_string(k+50);
-                Network network = Network(100, 100, strategyFunc, DefaultWithPureGDP, filepath, updateType);
+                Network network = Network(100, 100, strategyFunc, Update::DefaultWithPureGDP, filepath, updateType);
                 network.connectNearestNeighbours();
                 playNRounds(network, rounds, i, false, true);
             }
@@ -183,7 +181,7 @@ void runAllUpdatesForAllGPRs_BlockNetwork(int maxGPR,int rounds, Strategy* strat
             std::cout << i << std::endl;
             std::string filepath = "BlockTest_noSubPops\\" + updateString + "\\random_" + std::to_string(i) + "gpr";
             //Network network = Network(100, 100, random, updateType, filepath);
-            Network network = Network(100, 100, strategyFunc, Default, filepath, updateType, blockSize);
+            Network network = Network(100, 100, strategyFunc, Update::Default, filepath, updateType, blockSize);
             network.connectNearestNeighbours();
             playNRounds(network, rounds, i, true, true);
 //            ++showGPRProg;
@@ -191,17 +189,21 @@ void runAllUpdatesForAllGPRs_BlockNetwork(int maxGPR,int rounds, Strategy* strat
 //        ++showUpdateProg;
     }
 }
+
+
+//StrategyList centreStrat;
+//StrategyList surroundingsStrat;
 void runAllUpdatesForAllGPRs_CentreNetwork(int maxGPR,int rounds, Strategy* strategyFunc(std::pair<int, int>, std::pair<int, int>),double centreradius){
     std::cout << maxGPR << ", " << rounds << std::endl;
-    radius = centreradius;
+    double radius = centreradius;
     //for (int l = (int)StrategyList::AlwaysDefect; l != (int) StrategyList::SuspiciousTitForTat+1; l++) {
     for (int l = (int)StrategyList::TitForTat; l != (int) StrategyList::TitForTat+1; l++) {
-        surroundingsStrat = static_cast<StrategyList>(l);
+        StrategyList surroundingsStrat = static_cast<StrategyList>(l);
         std::string surroundsString = StrategyListStrings[surroundingsStrat];
         std::cout << "surrounds:" << surroundsString << std::endl;
         //for (int k = (int)StrategyList::AlwaysDefect; k != (int) StrategyList::SuspiciousTitForTat+1; k++) {
         for (int k = (int)StrategyList::SuspiciousTitForTat; k != (int) StrategyList::SuspiciousTitForTat+1; k++) {
-            centreStrat = static_cast<StrategyList>(k);
+            StrategyList centreStrat = static_cast<StrategyList>(k);
             std::string centreString = StrategyListStrings[centreStrat];
             std::cout << "centre:" << centreString << std::endl;
             if (k!= l){
@@ -214,7 +216,7 @@ void runAllUpdatesForAllGPRs_CentreNetwork(int maxGPR,int rounds, Strategy* stra
                         std::string filepath =
                                 "centreDot_r0-5\\surr_" + surroundsString + "\\cent_" + centreString + "\\" + updateString +
                                 "\\" + std::to_string(i) + "gpr";
-                        Network network = Network(15, 15, strategyFunc, Default, filepath, updateType);
+                        Network network = Network(15, 15, strategyFunc, Update::Default, filepath, updateType);
                         network.connectNearestNeighbours();
                         playNRounds(network, rounds, i, true, true);
                     }
@@ -222,86 +224,4 @@ void runAllUpdatesForAllGPRs_CentreNetwork(int maxGPR,int rounds, Strategy* stra
             }
         }
     }
-}
-
-Strategy * centreT4T(std::pair<int,int> coord, std::pair<int,int>) {
-    int radius2 = 3;
-    int x = coord.first;
-    int y = coord.second;
-
-    if(x*x<radius2 && y*y<radius2)
-        return new AlwaysDefect;
-    else
-        return new TitForTat;
-}
-
-Strategy * centre(std::pair<int,int> coord, std::pair<int,int> dimensions) {
-    double radius2 = radius;
-    double x = ((double) coord.first) + 0.5 - ((double) dimensions.first)/2;
-    double y = ((double) coord.second) + 0.5 - ((double) dimensions.second)/2;
-
-    if((double) (x*x + y*y)<radius2 * radius2)
-        return GetStrategyFromStrategyList(centreStrat);
-    return GetStrategyFromStrategyList(surroundingsStrat);
-}
-
-Strategy * random(std::pair<int,int>, std::pair<int,int>) {
-    boost::random::uniform_int_distribution<> dist(0,4);
-    switch (StrategyList(dist(gen))) {
-        case StrategyList::AlwaysCooperate:
-            return new AlwaysCooperate;
-        case StrategyList::AlwaysDefect:
-            return new AlwaysDefect;
-        case StrategyList::TitForTat:
-            return new TitForTat;
-        case StrategyList::Titx2ForTat:
-            return new Titx2ForTat;
-        case StrategyList::SuspiciousTitForTat:
-            return new SuspiciousTitForTat;
-    }
-}
-
-/*
-Strategy * randomBlocks(std::pair<int,int> position, std::pair<int,int> dimensions){
-    int blocksize = 5;
-    int blockArray[dimensions.first/blocksize +1][dimensions.second/blocksize +1] = {0};
-    for (int i = 0;i != dimensions.first/blocksize +1; i++){
-        for (int j = 0;i != dimensions.second/blocksize +1; i++){
-        }
-    }
-    return new AlwaysCooperate;
-}
-*/
-
-Strategy * random_NonST4T(std::pair<int,int>, std::pair<int,int>) {
-    boost::random::uniform_int_distribution<> dist(0,3);
-    switch (StrategyList(dist(gen))) {
-        case StrategyList::AlwaysCooperate:
-            return new AlwaysCooperate;
-        case StrategyList::AlwaysDefect:
-            return new AlwaysDefect;
-        case StrategyList::TitForTat:
-            return new TitForTat;
-        case StrategyList::Titx2ForTat:
-            return new Titx2ForTat;
-    }
-}
-
-Strategy * rdT4T (std::pair<int,int>, std::pair<int,int>) {
-    boost::random::uniform_01 <boost::random::mt19937> dist(gen);
-    if (dist() < 0.3)
-        return new TitForTat;
-    else
-        return new AlwaysDefect;
-}
-
-Update * DefaultWithPureGDP(std::pair<int, int> position, std::pair<int, int> dimensions, UpdateList defaultUpdateType){
-    double GDPfraction = 0.1;
-    boost::random::uniform_01 <boost::random::mt19937> dist(gen);
-    if (dist()< GDPfraction)
-        return new G_GDP;
-    return updateFromUpdateType(defaultUpdateType);
-}
-Update * Default(std::pair<int, int> position, std::pair<int, int> dimensions, UpdateList defaultUpdateType){
-    return updateFromUpdateType(defaultUpdateType);
 }

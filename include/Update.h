@@ -7,6 +7,7 @@
 
 #include "Network.h"
 #include <queue>
+#include <boost/random.hpp>
 
 
 extern std::map<UpdateList, std::string> UpdateListStrings;
@@ -17,6 +18,14 @@ class Update {
 public:
     virtual void update(Network::Node &);
     virtual UpdateList getName();
+
+    // Functions to produce initial Update arrays.
+    static Update* DefaultWithPureGDP(std::pair<int, int> position, std::pair<int, int> dimensions, UpdateList defaultUpdateType);
+    static Update* Default(std::pair<int, int> position, std::pair<int, int> dimensions, UpdateList defaultUpdateType);
+
+    static void SetRNG(boost::random::mt19937 newRNG);
+private:
+    static boost::random::mt19937 gen;
 };
 
 class L_Threshold : public Update {

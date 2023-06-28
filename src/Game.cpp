@@ -9,7 +9,8 @@
 
 #include "Game.h"
 
-std::map<std::pair<Outcome, Outcome>, std::pair<int, int>> payoff = {{{Outcome::Cooperate, Outcome::Cooperate}, {3, 3}},
+std::map<std::pair<Outcome, Outcome>, std::pair<int, int>> payoff =
+        {{{Outcome::Cooperate, Outcome::Cooperate}, {3, 3}},
          {{Outcome::Cooperate, Outcome::Defect},    {0, 5}},
          {{Outcome::Defect,    Outcome::Cooperate}, {5, 0}},
          {{Outcome::Defect,    Outcome::Defect},    {1, 1}}};

@@ -7,6 +7,7 @@
 
 #include "Network.h"
 #include <queue>
+#include <boost/random.hpp>
 
 Strategy * GetStrategyFromStrategyList(StrategyList name);
 
@@ -20,6 +21,23 @@ public:
     virtual void feedback(Network::Node &, Outcome);
     virtual void clearMemory();
     virtual StrategyList getName();
+
+    // Functions to produce initial strategy arrays.
+    static Strategy *centreT4T(std::pair<int, int> coord, std::pair<int, int> dimensions);
+    static Strategy *centre(std::pair<int, int> coord, std::pair<int, int> dimensions);
+    static Strategy *random(std::pair<int, int> coord, std::pair<int, int> dimensions);
+    static Strategy *random_NonST4T(std::pair<int, int> coord, std::pair<int, int> dimensions);
+    static Strategy *rdT4T(std::pair<int, int> coord, std::pair<int, int> dimensions);
+
+    static void SetRadius(double newRadius);
+    static void SetCentreStrat(StrategyList newStrat);
+    static void SetSurroundingsStrat(StrategyList newStrat);
+    static void SetRNG(boost::random::mt19937 newRNG);
+private:
+    static double radius;
+    static StrategyList centreStrat;
+    static StrategyList surroundingsStrat;
+    static boost::random::mt19937 gen;
 };
 
 class AlwaysDefect : public Strategy {
@@ -82,5 +100,9 @@ private:
     std::map<Network::Node*,Outcome> history;
     const StrategyList name = StrategyList::SuspiciousTitForTat;
 };
+
+
+
+
 
 #endif //SGCB_STRATEGY_H
