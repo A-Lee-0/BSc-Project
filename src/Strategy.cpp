@@ -185,6 +185,12 @@ StrategyList SuspiciousTitForTat::getName() {
 
 
 // Functions to produce initial strategy arrays.
+std::map<StrategyMethod, std::string> StrategyGeneratorNames = {{Strategy::centreT4T,"CentreT4T"},
+                                                                {Strategy::centre,"centre"},
+                                                                {Strategy::random,"random"},
+//                                                                {Strategy::randomBlocks,"randomBlocks"},
+                                                                {Strategy::random_NonST4T,"random_NonSusT4T"},
+                                                                {Strategy::random_threshold_DefT4T,"random_threshold_DefT4T"}};
 double Strategy::radius = 1;
 StrategyList Strategy::centreStrat;
 StrategyList Strategy::surroundingsStrat;
@@ -257,7 +263,7 @@ Strategy* Strategy::random_NonST4T(std::pair<int,int>, std::pair<int,int>) {
     }
 }
 
-Strategy* Strategy::rdT4T (std::pair<int,int>, std::pair<int,int>) {
+Strategy* Strategy::random_threshold_DefT4T (std::pair<int,int>, std::pair<int,int>) {
     boost::random::uniform_01 <boost::random::mt19937> dist(gen);
     if (dist() < 0.3)
         return new TitForTat;

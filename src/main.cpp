@@ -16,6 +16,7 @@
 #include "bitmap_image.hpp"
 #include "Drawing.h"
 #include "SGCB_Config.h"
+#include "Experiment.h"
 #include <ctime>
 
 std::time_t startTime_main;
@@ -37,28 +38,124 @@ int main() {
     Strategy::SetRNG(gen);
     Update::SetRNG(gen);
 
-    int numRepeatExperiments = 200;
+    Experiment * experiment = new RepeatExperiment();
+    Experiment &experimentRef = *experiment;
+
+
+    std::cout << "Testing if const in derived overrides: " << (*experiment).ListParameters().size() << std::endl;
+    std::cout << "Testing if param name lookup works: " << (*experiment).parameterEnumBimap.right.at(ParameterName::NumRounds) << std::endl;
+
+    std::cout << "Looking for updatetype string" << std::endl;
+    ExperimentMemberGetFn testGetFn = ((*experiment).getMethodMap["GetUpdateType"]);
+    ExperimentMemberGetFn testGetFn2 = &Experiment::dummyGetFn;
+    ExperimentMemberGetParamFn testGetParameter = &Experiment::GetParameter;
+
+
+
+
+
+    //pInt test2 = (*experiment).intMap.at(ParameterName::RepeatExperiments);
+    //std::cout << "Testing intMap: " << (*experiment).*(test2) << std::endl;
+    //std::cout << "Testing intMap: " << (*experiment).*((*experiment).intMap.at(ParameterName::RepeatExperiments)) << std::endl;
+    std::map<ParameterName,int Experiment::*> intMap;
+    /*int numRepeatExperiments = 200;
     int numRoundsPerExperiment = 50;
     int gamesPerRound = 15;
     bool saveBitmaps = false;
     bool returnGlobalData = true;
-
-
-
-//Loop through one updateType
-/*
-    UpdateList updateType = UpdateList::G_GDP;
-    int maxGPR = 15;
-    boost::progress_display GPRProg(maxGPR);
-    for (int i = 1; i != maxGPR; i++) {
-        std::string updateString = UpdateListStrings[updateType];
-        std::string filepath = "gprTest_" + updateString + "_CM_auto\\random_" + std::to_string(i) + "gpr";
-        Network network = Network(100, 100, random, updateType, filepath);
-        network.connectNearestNeighbours();
-        playNRounds(network, 50, i, true, true);
-        ++GPRProg;
-    }
 */
+    bool inputting = true;
+    while (inputting){
+        std::cout << "Enter 'run' to start the experiment." << std::endl;
+        //std::cout << "Enter 'run' to start the experiment, or enter 'help' to see other options." << std::endl;
+        char rawInput[50];
+        std::cin.getline(rawInput,50);
+        std::string input = std::string(rawInput);
+
+        if ( input == "run") {
+            std::cout << "Start the experiment!" << std::endl;
+            inputting = false;
+        }
+        else if ( input == "help") {
+            std::cout << "Need to implement changing experiment parameters from console!" << std::endl;
+        }
+        else if ( input.substr(0,4) == "set ") {
+            try {
+                std::string instruction = input.substr(4, input.length() - 4);
+                auto pos = instruction.find(" ");
+                std::string paramName = instruction.substr(0, pos);
+                std::string newValue = instruction.substr(pos + 1);
+                //std::cout << "Attempting to set parameter '" << paramName << "' to the value '" << newValue << "'."
+                //          << std::endl;
+                std::vector<std::string> paramNames = ListParameterNames(experiment);
+                if (std::find(paramNames.begin(), paramNames.end(), paramName) != paramNames.end()) {
+                    ParameterName param = parameterEnumMap.at(paramName);
+                    int intReturn = experiment->_SetFoundParameter(param, newValue);
+                    if (intReturn == 0) {
+                        std::cout << "Parameter name '" << paramName << "' successfully changed to '"
+                                  << experiment->GetParameter(param) << "'." << std::endl;
+                    } else {
+                        std::cout << "Something went wrong! Parameter '" << paramName << "' is currently '"
+                                  << (experiment->GetParameter(param)) << "'." << std::endl;
+                    }
+                } else {
+                    std::cout << "Parameter name '" << paramName << "' was not recognised." << std::endl;
+                }
+            }
+            catch (...) {
+                std::cout << "Something went wrong..." << std::endl;
+            }
+        }
+        else if ( input.substr(0,4) == "get ") {
+            try {
+                std::string instruction = input.substr(4, input.length() - 4);
+                auto pos = instruction.find(" ");   // only look upto first space, in case someone just flips 'set' to 'get'
+                std::string paramName = instruction.substr(0, pos);
+                //std::cout << "Attempting to get the current value of parameter '" << paramName << "'." << std::endl;
+                std::vector<std::string> paramNames = ListParameterNames(experiment);
+                if (std::find(paramNames.begin(), paramNames.end(), paramName) != paramNames.end()) {
+                    ParameterName param = parameterEnumMap.at(paramName);
+                    std::cout << "Parameter '" << paramName << "' is currently '" << (experiment->GetParameter(param))
+                              << "'." << std::endl;
+                }
+            }
+            catch (...) {
+                std::cout << "Something went wrong..." << std::endl;
+            }
+        }
+
+        else if ( input == "params") {
+            try {
+                std::cout << "Parameters for experiment type '" << experiment->getName() << "':" << std::endl;
+                std::vector<std::string> paramNames = ListParameterNames(experiment);
+                ulong maxLength = 0;
+                for (std::string name : paramNames) {
+                    if (name.length() > maxLength) { maxLength = name.length(); }
+                }
+                std::cout << "    " << "Param" << std::string(2+maxLength-5,' ') << "Value" << std::endl;
+                for (std::string name : paramNames){
+                    ParameterName param = parameterEnumMap.at(name);
+                    std::string value = experiment->GetParameter(param);
+                    std::cout << "    " << name << std::string(2+maxLength-name.length(),' ') << value << std::endl;
+                }
+            }
+            catch (...) {
+                std::cout << "Something went wrong..." << std::endl;
+            }
+        }
+
+        else{
+            std::cout << "No intruction recognised... try 'help' to see your options." << std::endl;
+        }
+    }
+
+    //Experiment * test = new LoopOneUpdateType();
+    //test->repeatExperiments = 10;
+    std::cout << "Name: " << experiment->getName() << std::endl;
+    experiment->Run();
+    //test.run();
+
+
 /*
 //Run Single Case
 
@@ -96,6 +193,8 @@ int main() {
         playNRounds(network, 50, 15, false, true);
     }*/
 
+
+    /*
     updateType = UpdateList::SL_ThresholdScoreTB;
     updateString = UpdateListStrings[updateType];
     for (int i = 0; i != 200; i++){
@@ -105,7 +204,7 @@ int main() {
         Network network = Network(100,100,Strategy::random,updateType, filepath);
         network.connectNearestNeighbours();
         playNRounds(network, 50, 15, false, true);
-    }
+    }*/
 
 
     //iteratedRunAllUpdatesForAllGPRs(15,50,150,random);

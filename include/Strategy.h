@@ -15,6 +15,10 @@ extern std::map<std::string, StrategyList> strategyStrings;
 extern std::map<StrategyList, std::string> StrategyListStrings;
 extern std::map<StrategyList, int> intStrategies;
 
+using StrategyMethod = Strategy* (*)(std::pair<int, int>, std::pair<int, int>);
+
+extern std::map<StrategyMethod, std::string> StrategyGeneratorNames;
+
 class Strategy {
 public:
     virtual Outcome play(Network::Node &);
@@ -26,8 +30,9 @@ public:
     static Strategy *centreT4T(std::pair<int, int> coord, std::pair<int, int> dimensions);
     static Strategy *centre(std::pair<int, int> coord, std::pair<int, int> dimensions);
     static Strategy *random(std::pair<int, int> coord, std::pair<int, int> dimensions);
+//    static Strategy *randomBlocks(std::pair<int, int> coord, std::pair<int, int> dimensions);
     static Strategy *random_NonST4T(std::pair<int, int> coord, std::pair<int, int> dimensions);
-    static Strategy *rdT4T(std::pair<int, int> coord, std::pair<int, int> dimensions);
+    static Strategy *random_threshold_DefT4T(std::pair<int, int> coord, std::pair<int, int> dimensions);
 
     static void SetRadius(double newRadius);
     static void SetCentreStrat(StrategyList newStrat);
