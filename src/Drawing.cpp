@@ -5,7 +5,7 @@
 
 #include "Drawing.h"
 #include "bitmap_image.hpp"
-#include "Strategy.h"
+//#include "Strategy.h"
 
 std::map<StrategyList, rgb_t> strategyColours = {{StrategyList::AlwaysDefect, rgb_t {255,0,0}},             //red
                                                  {StrategyList::AlwaysCooperate, rgb_t {0,0,255}},          //blue

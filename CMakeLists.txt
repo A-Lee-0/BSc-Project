@@ -12,12 +12,17 @@ configure_file(
         ${PROJECT_BINARY_DIR}/SGCB_Config.h
 )
 
-message(PROJECT_SOURCE_DIR="${PROJECT_SOURCE_DIR}")
-message(PROJECT_BINARY_DIR="${PROJECT_BINARY_DIR}")
-message(CMAKE_CURRENT_SOURCE_DIR="${CMAKE_CURRENT_SOURCE_DIR}")
-message(CMAKE_CURRENT_BINARY_DIR="${CMAKE_CURRENT_BINARY_DIR}")
-
 include_directories(${PROJECT_SOURCE_DIR}/include)
+include_directories(${PROJECT_SOURCE_DIR}/lib_network/include)
 include_directories(${PROJECT_BINARY_DIR})
 
+add_executable(SGCB main.cpp)
+
 add_subdirectory(src)
+add_subdirectory(lib_network)
+
+target_link_libraries(SGCB core)
+target_link_libraries(SGCB network)
+
+
+

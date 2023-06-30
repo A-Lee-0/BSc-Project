@@ -8,7 +8,6 @@
 #include <string>
 #include <cstring>
 #include <iostream>
-#include <Game.h>
 #include <boost/filesystem.hpp>
 
 //-----Network Methods-------------------------------------
@@ -61,7 +60,7 @@ Network::Network(int xDim, int yDim, StrategyMethodPnt strategyFunc) : xDim(xDim
 
 Network::Network(int xDim, int yDim, StrategyMethodPnt strategyFunc, UpdateList updateType, std::string subDir) : xDim(xDim), yDim(yDim),subDir(subDir) {
 
-    createDirectory(subDir);
+    CreateDirectory(subDir);
 
     for (int x = 0; x < xDim; x++) {
         for (int y = 0; y < yDim; y++) {
@@ -73,7 +72,7 @@ Network::Network(int xDim, int yDim, StrategyMethodPnt strategyFunc, UpdateList 
 }
 
 Network::Network(int xDim, int yDim, StrategyMethodPnt strategyFunc, UpdateMethodPnt updateFunc, std::string subDir, UpdateList defaultUpdateType) : xDim(xDim), yDim(yDim),subDir(subDir) {
-    createDirectory(subDir);
+    CreateDirectory(subDir);
     for (int x = 0; x < xDim; x++) {
         for (int y = 0; y < yDim; y++) {
             Node node = Node(x,y,strategyFunc({x,y},{xDim,yDim}),this);
@@ -85,7 +84,7 @@ Network::Network(int xDim, int yDim, StrategyMethodPnt strategyFunc, UpdateMetho
 
 Network::Network(int xDim, int yDim, StrategyMethodPnt strategyFunc, UpdateMethodPnt updateFunc, std::string subDir, UpdateList defaultUpdateType, int blocksize) : xDim(xDim), yDim(yDim),subDir(subDir) {
     Network network2 = Network((xDim/blocksize) +1, (yDim/blocksize)+1, strategyFunc, updateFunc, subDir, defaultUpdateType);
-    createDirectory(subDir);
+    CreateDirectory(subDir);
     for (int x = 0; x < xDim; x++) {
         for (int y = 0; y < yDim; y++) {
             Strategy * strategy = GetStrategyFromStrategyList(network2.getNodeByCoord({x/blocksize,y/blocksize}).getCurrentStrategy());
@@ -154,7 +153,7 @@ std::string Network::getSubDir(){
 void Network::setSubDir(std::string newSubDir) {
     subDir = newSubDir;
     std::string filePath = std::string(newSubDir);
-    createDirectory(subDir);
+    CreateDirectory(subDir);
 }
 
 void Network::connectNearestNeighbours() {
@@ -370,4 +369,19 @@ void Network::Node::resetScore() {
     this->opWins.clear();
 }
 
-
+// Duplicated from Game.cpp to prevent dependence on 'core' lib code from 'network' lib code.
+void Network::CreateDirectory(std::string path){
+    std::size_t oldLinePos = 0;
+    std::size_t linePos = 0;
+    while(path.find("\\",oldLinePos) != std::string::npos){
+        linePos = path.find("\\",oldLinePos);
+        oldLinePos = linePos+1;
+        std::string substring = path.substr(0,linePos);
+        char* charPath = (char*) (substring).c_str();
+        boost::filesystem::path dir(charPath);
+        boost::filesystem::create_directory(dir);
+    }
+    char* charPath = (char*) (path).c_str();
+    boost::filesystem::path dir(charPath);
+    boost::filesystem::create_directory(dir);
+}

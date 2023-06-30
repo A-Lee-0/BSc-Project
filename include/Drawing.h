@@ -6,8 +6,8 @@
 #define SGCB_DRAWING_H
 
 #include <Magick++.h>
-#include "Strategy.h"
 #include "bitmap_image.hpp"
+#include <Network.h>
 
 extern std::map<StrategyList, rgb_t> strategyColours;
 

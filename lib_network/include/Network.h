@@ -136,6 +136,7 @@ public:
     std::map<StrategyList, int> &getGlobalTotalScore();
 
 private:
+    static void CreateDirectory(std::string path);
 
     std::map<std::pair<int,int>, Node> nodeMap;
     std::vector<std::pair<Node*, Node*>> edges;

@@ -7,8 +7,10 @@
 
 #include <map>
 
-#include "Network.h"
+#include <Network.h>
 #include "Drawing.h"
+
+enum class StrategyList;
 
 extern std::map<std::pair<Outcome, Outcome>, std::pair<int, int>> payoff;
 

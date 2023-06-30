@@ -7,7 +7,7 @@
 
 #include <boost/bimap.hpp>
 #include <map>
-#include "Network.h"
+#include <Network.h>
 
 #define READ_MEMBER_VAR_MAP(object,objectMap,key)  (object->*(object->objectMap.at(key)))
 
