@@ -61,6 +61,7 @@ void CreateGif(std::string dir,std::string filename, short frametime){
             bmpName = "round_" + std::to_string(i) + ".bmp";
             image.read(dir + "\\" + bmpName);
             image.animationDelay(frametime);
+            image.scale("400%");
             imageList.push_back(image);
         }
 
