@@ -8,6 +8,14 @@
 #include "Network.h"
 #include <queue>
 #include <boost/random.hpp>
+#include <map>
+
+class Update;
+enum class UpdateList {L_Threshold, L_MostWins, SL_Interrogate, SL_ThresholdScoreTB, G_ThresholdGDPTB, G_ThresholdGPPTB, G_GDP};
+
+//Alias functions to produce grids of strategies and updateStrategies.
+typedef Update* UpdateMethod(std::pair<int, int>, std::pair<int, int>,UpdateList);
+typedef UpdateMethod* UpdateMethodPnt;
 
 extern std::map<UpdateList, std::string> UpdateListStrings;
 

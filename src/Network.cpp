@@ -3,8 +3,7 @@
 //
 
 #include "Network.h"
-#include "Strategy.h"
-#include "Update.h"
+
 #include <fstream>
 #include <string>
 #include <cstring>

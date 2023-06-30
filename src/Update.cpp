@@ -2,8 +2,8 @@
 // Created by AndrewLee on 19-Mar-17.
 //
 
-#include <iostream>
 #include "Update.h"
+#include <iostream>
 
 std::map<UpdateList, std::string> UpdateListStrings = {{UpdateList::L_Threshold,"L_Threshold"},
                                                        {UpdateList::L_MostWins,"L_MostWins"},

@@ -6,10 +6,8 @@
 #define SGCB_EXPERIMENT_H
 
 #include <boost/bimap.hpp>
-#include <boost/assign.hpp>
 #include <map>
-#include "Update.h"
-#include "Strategy.h"
+#include "Network.h"
 
 #define READ_MEMBER_VAR_MAP(object,objectMap,key)  (object->*(object->objectMap.at(key)))
 
@@ -149,5 +147,6 @@ protected:
                                                    ParameterName::InitialStrategiesMethod,
                                                    ParameterName::UpdateType};
 };
+
 #endif //SGCB_EXPERIMENT_H
 

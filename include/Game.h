@@ -6,12 +6,8 @@
 #define SGCB_GAME_H
 
 #include <map>
-#include <iostream>
 
 #include "Network.h"
-#include "Strategy.h"
-#include "Update.h"
-#include "Game.h"
 #include "Drawing.h"
 
 extern std::map<std::pair<Outcome, Outcome>, std::pair<int, int>> payoff;
@@ -27,4 +23,5 @@ void prepareNetwork(Network& network);
 void saveIntArray(char* filename, int intArray);
 
 void createDirectory(std::string path);
+
 #endif //SGCB_GAME_H

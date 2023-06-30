@@ -2,12 +2,9 @@
 // Created by Samuel Kirby and Andrew Lee on 22/2/17.
 //
 
-#include <iostream>
-#include <string>
-#include <boost/filesystem.hpp>
-#include <boost/progress.hpp>
-
 #include "Game.h"
+#include <iostream>
+#include <boost/filesystem.hpp>
 
 std::map<std::pair<Outcome, Outcome>, std::pair<int, int>> payoff =
         {{{Outcome::Cooperate, Outcome::Cooperate}, {3, 3}},

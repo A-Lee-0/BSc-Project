@@ -12,17 +12,22 @@
 #include <boost/filesystem.hpp>
 #undef BOOST_NO_CXX11_SCOPED_ENUMS
 
+// NOTE! These are included after class definition, so nested class is fully defined!
+// #include "Strategy.h"
+// #include "Update.h"
+
+
+
+//fwd declarations from Strategy.h
 class Strategy;
-class Update;
-
-enum class StrategyList {AlwaysDefect, AlwaysCooperate, TitForTat, Titx2ForTat, SuspiciousTitForTat};
-enum class UpdateList {L_Threshold, L_MostWins, SL_Interrogate, SL_ThresholdScoreTB, G_ThresholdGDPTB, G_ThresholdGPPTB, G_GDP};
-
-enum class Outcome {Cooperate, Defect};
-
-//Alias functions to produce grids of strategies and updateStrategies.
+enum class StrategyList;
 typedef Strategy* StrategyMethod(std::pair<int, int>, std::pair<int, int>);
 typedef StrategyMethod* StrategyMethodPnt;
+enum class Outcome;
+
+//fwd declarations from Update.h
+class Update;
+enum class UpdateList;
 typedef Update* UpdateMethod(std::pair<int, int>, std::pair<int, int>,UpdateList);
 typedef UpdateMethod* UpdateMethodPnt;
 
@@ -102,7 +107,6 @@ public:
         Network* network;
     };
 
-
     std::map<std::pair<int, int>, Node> &getNodeMap();
 
     const std::vector<std::pair<Node *, Node *>> &getEdges() const;
@@ -132,6 +136,7 @@ public:
     std::map<StrategyList, int> &getGlobalTotalScore();
 
 private:
+
     std::map<std::pair<int,int>, Node> nodeMap;
     std::vector<std::pair<Node*, Node*>> edges;
     std::map<StrategyList,double> globalStats;
@@ -144,5 +149,8 @@ private:
     std::string subDir;
 };
 
+//include after class definition, so nested class is fully defined!
+#include "Strategy.h"
+#include "Update.h"
 
 #endif //SGCB_NETWORK_H

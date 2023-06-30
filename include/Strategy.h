@@ -8,7 +8,16 @@
 #include "Network.h"
 #include <queue>
 #include <boost/random.hpp>
+#include <map>
 
+class Strategy;
+enum class Outcome {Cooperate, Defect};
+
+//Alias functions to produce grids of strategies and updateStrategies.
+typedef Strategy* StrategyMethod(std::pair<int, int>, std::pair<int, int>);
+typedef StrategyMethod* StrategyMethodPnt;
+
+enum class StrategyList {AlwaysDefect, AlwaysCooperate, TitForTat, Titx2ForTat, SuspiciousTitForTat};
 Strategy * GetStrategyFromStrategyList(StrategyList name);
 
 extern std::map<std::string, StrategyList> strategyStrings;

@@ -1,8 +1,9 @@
 //
 // Created by Samuel Kirby and Andrew Lee on 04/02/2017.
 //
-#include <iostream>
 #include "Strategy.h"
+#include <iostream>
+
 
 
 Strategy * GetStrategyFromStrategyList(StrategyList name) {
@@ -80,7 +81,7 @@ Outcome AlwaysCooperate::play(Network::Node &node) {
     return Outcome::Cooperate;
 }
 
-void AlwaysCooperate::feedback(Network::Node &, Outcome) {
+void AlwaysCooperate::feedback(Network::Node &node, Outcome) {
     return;
 }
 

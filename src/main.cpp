@@ -7,11 +7,8 @@
 #include <boost/filesystem.hpp>
 
 #include "SGCB_Config.h"
-#include "Network.h"
-#include "Strategy.h"
-#include "Update.h"
-#include "Game.h"
 #include "Experiment.h"
+
 
 std::time_t startTime_main;
 boost::random::mt19937 gen(static_cast<unsigned int>(std::time(&startTime_main)));
@@ -227,6 +224,8 @@ int main() {
     return 0;
 }
 
+
+/*
 void runAllUpdatesForAllGPRs(int maxGPR,int rounds, StrategyMethod strategyFunc){
     unsigned long noUpdateTypes = (int) UpdateList::G_GDP;
 //    boost::progress_display showUpdateProg(noUpdateTypes);
@@ -251,6 +250,10 @@ void runAllUpdatesForAllGPRs(int maxGPR,int rounds, StrategyMethod strategyFunc)
     }
 }
 
+ */
+
+
+/*
 void iteratedRunAllUpdatesForAllGPRs(int maxGPR,int rounds, int iterations, Strategy* strategyFunc(std::pair<int, int>, std::pair<int, int>)){
     unsigned long noUpdateTypes = (int) UpdateList::G_GDP;
     std::cout << maxGPR << ", " << rounds << std::endl;
@@ -273,6 +276,10 @@ void iteratedRunAllUpdatesForAllGPRs(int maxGPR,int rounds, int iterations, Stra
         }
     }
 }
+*/
+
+
+/*
 void runAllUpdatesForAllGPRs_BlockNetwork(int maxGPR,int rounds, Strategy* strategyFunc(std::pair<int, int>, std::pair<int, int>),int blockSize){
     unsigned long noUpdateTypes = (int) UpdateList::G_GDP;
 //    boost::progress_display showUpdateProg(noUpdateTypes);
@@ -296,7 +303,9 @@ void runAllUpdatesForAllGPRs_BlockNetwork(int maxGPR,int rounds, Strategy* strat
 //        ++showUpdateProg;
     }
 }
+*/
 
+/*
 
 //StrategyList centreStrat;
 //StrategyList surroundingsStrat;
@@ -332,3 +341,5 @@ void runAllUpdatesForAllGPRs_CentreNetwork(int maxGPR,int rounds, Strategy* stra
         }
     }
 }
+
+*/
