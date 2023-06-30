@@ -32,6 +32,7 @@ int main() {
     Experiment * experiment = new RepeatExperiment();
     //Experiment * experiment = new IncrementGamesPerRound();
     experiment->SetParameter("SaveBitmaps","1");
+    experiment->SetParameter("RepeatExperiments","10");
     //experiment->SetParameter("MaxGPR","3");
 
 
@@ -46,7 +47,6 @@ int main() {
         if ( input == "run") {
             std::cout << "Start the experiment!" << std::endl;
             inputting = false;
-            experiment->Run();
         }
         else if ( input == "help") {
             //TODO: make 'help' actually helpful!
@@ -218,6 +218,15 @@ int main() {
     t = time(0);   // get time now
     now = localtime( & t );
     char datetime[20];
+    strftime(datetime,20,"%Y-%m-%d %H:%M",now);
+    std::cout << std::endl;
+    std::cout << "Time Started: " << datetime << std::endl;
+
+    experiment->Run();
+
+    t = time(0);   // get time now
+    now = localtime( & t );
+    datetime[20];
     strftime(datetime,20,"%Y-%m-%d %H:%M",now);
     std::cout << std::endl;
     std::cout << "Time Finished: " << datetime << std::endl;
