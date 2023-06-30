@@ -27,8 +27,6 @@ std::vector<std::string> ListParameterNames(Experiment experiment, std::vector<P
 }
 
 Experiment::Experiment(){
-//    testP3 = &Experiment::repeatExperiments;
-//    testPInt = &Experiment::repeatExperiments;
     intMap = {{ParameterName::MaxGPR,&Experiment::maxGPR},
               {ParameterName::GPR,&Experiment::GPR},
               {ParameterName::NumRounds,&Experiment::numRounds},
@@ -59,22 +57,9 @@ void Experiment::Run() {
     throw std::logic_error("using stub experiment!");
 }
 
-void Experiment::SetParameter(std::string paramName, boost::any newParamValue) {
-    //std::function<void(boost::any)> method = this->setMethodMap[paramName];
-    //method(newParamValue);
-    //this->setMethodMap[paramName](newParamValue);
-
-    //auto method = this->setMethodMap[paramName];
-    //method(newParamValue);
-    (this->*setMethodMap[paramName])(newParamValue);
-
-}
 
 std::string Experiment::GetParameter(std::string paramName) { return "Dummy string"; };
 std::string Experiment::GetParameter(ParameterName param) { return "Parameter " + parameterEnumBimap.right.find(param)->second  + " does not exist for experiment type" + getName(); };
-
-
-std::string Experiment::dummyGetFn(){ return "Dummy string";}
 
 std::vector<ParameterName> Experiment::ListParameters(){
     return parameters;
@@ -86,26 +71,15 @@ std::vector<ParameterName> Experiment::ListParameters(){
 IncrementGamesPerRound::IncrementGamesPerRound(){
     name = "IncrementGamesPerRound";
     description =
-            "This experiment runs the same iterated Prisoner's Dilemma repeatedly, with the same initial network. However,"
-                    "it increments the number of Games per Round by 1 each time, up to a specified maximum. This allows us to"
-                    "investigate how effective strategies that change between rounds are."
-                    "";
-    std::map<std::string, int IncrementGamesPerRound::*> intParameters;
-    setMethodMap["SetUpdateType"] = SetUpdateType;
-    getMethodMap["GetUpdateType"] = GetUpdateType;
-    setMethodMap["SetInitialStrategiesMethod"] = SetInitialStrategiesMethod;
-    getMethodMap["GetInitialStrategiesMethod"] = GetInitialStrategiesMethod;
-
-    intParameters["GPR"] = &IncrementGamesPerRound::maxGPR;
-    intParameters["numRounds"] = &IncrementGamesPerRound::numRounds;
-    intParameters["networkSize"] = &IncrementGamesPerRound::networkSize;
-
+            "This experiment runs the same iterated Prisoner's Dilemma repeatedly, with the same initial network. "
+                    "However,it increments the number of Games per Round by 1 each time, up to a specified maximum. "
+                    "This allows us to investigate how the efficacy of strategies that change between rounds changes "
+                    "with the number of rounds.";
     maxGPR = 15;
     numRounds = 50;
     networkSize = 100;
     updateType = UpdateList::G_GDP;
     initialStrategiesMethod = Strategy::random;
-
 }
 
 void IncrementGamesPerRound::Run(){
@@ -121,14 +95,6 @@ void IncrementGamesPerRound::Run(){
             ++GPRProg;
         }
     }
-}
-void IncrementGamesPerRound::SetUpdateType(boost::any newUpdateType){ updateType = boost::any_cast<UpdateList>(newUpdateType); }
-std::string IncrementGamesPerRound::GetUpdateType(){ return UpdateListStrings[updateType]; }
-void IncrementGamesPerRound::SetInitialStrategiesMethod(boost::any newInitialStrategiesMethod){ initialStrategiesMethod = boost::any_cast<StrategyMethod>(newInitialStrategiesMethod); }
-std::string IncrementGamesPerRound::GetInitialStrategiesMethod(){ return StrategyGeneratorNames[initialStrategiesMethod]; }
-void IncrementGamesPerRound::SetIntParameter(std::string paramName,int newParamValue){
-    auto variable = intParameters[paramName];
-    this->*variable = newParamValue;
 }
 
 std::string IncrementGamesPerRound::GetParameter(std::string paramName){
@@ -152,6 +118,9 @@ std::vector<ParameterName> IncrementGamesPerRound::ListParameters(){
 
 RepeatExperiment::RepeatExperiment(){
     name ="RepeatExperiment";
+    description =
+            "This experiment runs the iterated Prisoner's Dilemma repeatedly, up to 'RepeatExperiments' times. This is "
+                    "useful for making claims about the statistical strength of any conculsions.";
     GPR = 15;
     numRounds = 50;
     networkSize = 100;
@@ -169,23 +138,12 @@ void RepeatExperiment::Run(){
     std::string newDirectory = std::string(datetime) + "\\" + name;
     boost::progress_display repeatsProg(repeatExperiments);
     for (int i = 0; i != repeatExperiments; i++) {
-        //std::cout << updateString << i << std::endl;
-
         std::string filepath = newDirectory + "\\iter" + std::to_string(i);
         Network network = Network(networkSize, networkSize, initialStrategiesMethod, updateType, filepath);
         network.connectNearestNeighbours();
         playNRounds(network, numRounds, GPR, saveBitmaps, returnGlobalData);
         ++repeatsProg;
     }
-}
-
-void RepeatExperiment::SetUpdateType(boost::any newUpdateType){ updateType = boost::any_cast<UpdateList>(newUpdateType); }
-std::string RepeatExperiment::GetUpdateType(){ return UpdateListStrings[updateType]; }
-void RepeatExperiment::SetInitialStrategiesMethod(boost::any newInitialStrategiesMethod){ initialStrategiesMethod = boost::any_cast<StrategyMethod>(newInitialStrategiesMethod); }
-std::string RepeatExperiment::GetInitialStrategiesMethod(){ return StrategyGeneratorNames[initialStrategiesMethod]; }
-void RepeatExperiment::SetIntParameter(std::string paramName,int newParamValue){
-    //auto variable = intParameters[paramName];
-    (this->*intParameters[paramName]) = newParamValue;
 }
 
 
@@ -237,16 +195,27 @@ std::string Experiment::_GetFoundParameter(ParameterName param){
     }
 }
 
-int Experiment::_SetFoundParameter(ParameterName param, std::string newValue){
+
+ConsoleReturn Experiment::SetParameter(std::string paramName, std::string newValue){
+    //std::cout << "Test ListParameterNames: " << ListParameterNames(this).size() << std::endl;
+    std::vector<std::string> paramNames = ListParameterNames(this);
+    if (std::find(paramNames.begin(), paramNames.end(), paramName) != paramNames.end()) {
+        ParameterName param = parameterEnumMap.at(paramName);
+        return this->_SetFoundParameter(param, newValue);
+    }
+    else{
+        return ConsoleReturn::NotApplicableParam;
+    }
+}
+ConsoleReturn Experiment::_SetFoundParameter(ParameterName param, std::string newValue){
     // Handle ints in bulk, as there're a lot of them!
     if (ParameterType.at(param) == "int"){
-        std::cout << "param is int!" << std::endl;
         try{
             int newInt = boost::lexical_cast<int>(newValue);
             return _SetFoundInt(param,newInt);
         }
         catch(...){
-            return 1;
+            return ConsoleReturn::UnknownFailure;
         }
     }
     // Handle bools
@@ -261,64 +230,59 @@ int Experiment::_SetFoundParameter(ParameterName param, std::string newValue){
                 newBool = false;
             }
             else {
-                return 1;
+                return ConsoleReturn::InvalidNewValue;
             }
             return _SetFoundBool(param,newBool);
         }
         catch(...){
-            return 1;
+            return ConsoleReturn::UnknownFailure;
         }
     }
-
 
     switch (param) {
         case ParameterName::UpdateType:
             for (auto &i : UpdateListStrings) {
                 if (i.second == newValue){
                     updateType = i.first;
-                    return 0;
+                    return ConsoleReturn::Success;
                 }
             }
-            return 1;
+            return ConsoleReturn::UnknownFailure;
         case ParameterName::InitialStrategiesMethod:
             for (auto &i : StrategyGeneratorNames) {
                 if (i.second == newValue){
                     initialStrategiesMethod = i.first;
-                    return 0;
+                    return ConsoleReturn::Success;
                 }
             }
-            return 1;
+            return ConsoleReturn::UnknownFailure;
         default:
-            return 1;//"Shouldn't see this!";
+            return ConsoleReturn::UnknownFailure;//"Shouldn't see this!";
     }
 }
-int Experiment::_SetFoundInt(ParameterName param, int newValue){
+ConsoleReturn Experiment::_SetFoundInt(ParameterName param, int newValue){
     if (ParameterType.at(param) == "int"){
         try{
             this->*intMap.at(param) = newValue;
-            return 0;
+            return ConsoleReturn::Success;
         }
         catch(...){
-            return 1;
+            ConsoleReturn::UnknownFailure;
         }
     }
-    else {
-        return 1;
-    }
+    return ConsoleReturn::InvalidType;
 }
 
-int Experiment::_SetFoundBool(ParameterName param, bool newValue){
+ConsoleReturn Experiment::_SetFoundBool(ParameterName param, bool newValue){
     if (ParameterType.at(param) == "bool"){
         try{
             this->*boolMap.at(param) = newValue;
-            return 0;
+            return ConsoleReturn::Success;
         }
         catch(...){
-            return 1;
+            return ConsoleReturn::UnknownFailure;
         }
     }
-    else {
+    return ConsoleReturn::InvalidType;
 
-        return 1;
-    }
 }

@@ -42,28 +42,6 @@ int main() {
     Experiment &experimentRef = *experiment;
 
 
-    std::cout << "Testing if const in derived overrides: " << (*experiment).ListParameters().size() << std::endl;
-    std::cout << "Testing if param name lookup works: " << (*experiment).parameterEnumBimap.right.at(ParameterName::NumRounds) << std::endl;
-
-    std::cout << "Looking for updatetype string" << std::endl;
-    ExperimentMemberGetFn testGetFn = ((*experiment).getMethodMap["GetUpdateType"]);
-    ExperimentMemberGetFn testGetFn2 = &Experiment::dummyGetFn;
-    ExperimentMemberGetParamFn testGetParameter = &Experiment::GetParameter;
-
-
-
-
-
-    //pInt test2 = (*experiment).intMap.at(ParameterName::RepeatExperiments);
-    //std::cout << "Testing intMap: " << (*experiment).*(test2) << std::endl;
-    //std::cout << "Testing intMap: " << (*experiment).*((*experiment).intMap.at(ParameterName::RepeatExperiments)) << std::endl;
-    std::map<ParameterName,int Experiment::*> intMap;
-    /*int numRepeatExperiments = 200;
-    int numRoundsPerExperiment = 50;
-    int gamesPerRound = 15;
-    bool saveBitmaps = false;
-    bool returnGlobalData = true;
-*/
     bool inputting = true;
     while (inputting){
         std::cout << "Enter 'run' to start the experiment." << std::endl;
@@ -87,22 +65,27 @@ int main() {
                 std::string newValue = instruction.substr(pos + 1);
                 //std::cout << "Attempting to set parameter '" << paramName << "' to the value '" << newValue << "'."
                 //          << std::endl;
-                std::vector<std::string> paramNames = ListParameterNames(experiment);
-                if (std::find(paramNames.begin(), paramNames.end(), paramName) != paramNames.end()) {
-                    ParameterName param = parameterEnumMap.at(paramName);
-                    int intReturn = experiment->_SetFoundParameter(param, newValue);
-                    if (intReturn == 0) {
+                //experiment->SetParameter(paramName, newValue);
+                ConsoleReturn consRet = experiment->SetParameter(paramName, newValue);
+                switch (consRet) {
+                    case ConsoleReturn::Success:
                         std::cout << "Parameter name '" << paramName << "' successfully changed to '"
-                                  << experiment->GetParameter(param) << "'." << std::endl;
-                    } else {
+                                  << experiment->GetParameter(paramName) << "'." << std::endl;
+                        break;
+                    case ConsoleReturn::UnknownParamString:
+                        std::cout << "Parameter name '" << paramName << "' was not recognised." << std::endl;
+                        break;
+                    case ConsoleReturn::NotApplicableParam:
+                        std::cout << "Parameter name '" << paramName << "' is not used by experiment type '"
+                                  << experiment->getName() << "'." << std::endl;
+                        break;
+                    default:
                         std::cout << "Something went wrong! Parameter '" << paramName << "' is currently '"
-                                  << (experiment->GetParameter(param)) << "'." << std::endl;
-                    }
-                } else {
-                    std::cout << "Parameter name '" << paramName << "' was not recognised." << std::endl;
+                                  << (experiment->GetParameter(paramName)) << "'." << std::endl;
+                        break;
                 }
             }
-            catch (...) {
+            catch (...){
                 std::cout << "Something went wrong..." << std::endl;
             }
         }
