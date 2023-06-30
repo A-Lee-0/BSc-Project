@@ -37,7 +37,7 @@ void playNRounds(Network& network, int N, int gamesPerRound, bool saveBitmaps, b
         name = "\\images\\round_0.bmp";
         path = network.getSubDir() + "\\images";
         createDirectory(path);
-        saveBitmap(network, name);
+        SaveBitmap(network, name);
     }
 
     for (int n = 0; n!=N;++n){
@@ -73,7 +73,7 @@ void playNRounds(Network& network, int N, int gamesPerRound, bool saveBitmaps, b
         if (saveBitmaps) {
             //save bmp file
             name = "images\\round_" + std::to_string(n + 1) + ".bmp";
-            saveBitmap(network, name);
+            SaveBitmap(network, name);
         }
     }
     if (returnGlobalData){
@@ -102,6 +102,10 @@ void playNRounds(Network& network, int N, int gamesPerRound, bool saveBitmaps, b
         for (int i = 0; i !=N+1; ++i)
             outputFile << globalTotalScore[i][0] << "," << globalTotalScore[i][1] << "," << globalTotalScore[i][2] << "," << globalTotalScore[i][3] << "," << globalTotalScore[i][4] << "\n";
         outputFile.close();
+    }
+
+    if(saveBitmaps){
+        CreateGif(network.getSubDir() + "\\images","anim.gif");
     }
 }
 

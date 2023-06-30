@@ -42,6 +42,10 @@ int main() {
         //std::cout << "Enter 'run' to start the experiment, or enter 'help' to see other options." << std::endl;
         char rawInput[50];
         std::cin.getline(rawInput,50);
+
+        std::cin.clear();
+        //std::cin.ignore(std::numeric_limits<std::streamsize>::max());
+
         std::string input = std::string(rawInput);
 
         if ( input == "run") {

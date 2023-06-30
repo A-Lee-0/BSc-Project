@@ -11,6 +11,11 @@
 
 extern std::map<StrategyList, rgb_t> strategyColours;
 
-void saveBitmap(Network &network, std::string filename);
+void SaveBitmap(Network &network, std::string filename);
+
+void CreateGif(std::string dir,std::string filename);
+void CreateGif(std::string dir,std::string filename, short frametime);
+
+inline bool FileExists (const std::string& name);
 
 #endif //SGCB_DRAWING_H
