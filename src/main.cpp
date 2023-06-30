@@ -219,7 +219,7 @@ int main() {
     t = time(0);   // get time now
     now = localtime( & t );
     char datetime[20];
-    strftime(datetime,20,"%Y-%m-%d %H%M",now);
+    strftime(datetime,20,"%Y-%m-%d %H:%M",now);
     std::cout << std::endl;
     std::cout << "Time Finished: " << datetime << std::endl;
     return 0;
