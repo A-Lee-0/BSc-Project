@@ -15,9 +15,7 @@ extern std::map<std::string, StrategyList> strategyStrings;
 extern std::map<StrategyList, std::string> StrategyListStrings;
 extern std::map<StrategyList, int> intStrategies;
 
-using StrategyMethod = Strategy* (*)(std::pair<int, int>, std::pair<int, int>);
-
-extern std::map<StrategyMethod, std::string> StrategyGeneratorNames;
+extern std::map<StrategyMethodPnt, std::string> StrategyGeneratorNames;
 
 class Strategy {
 public:
@@ -27,12 +25,12 @@ public:
     virtual StrategyList getName();
 
     // Functions to produce initial strategy arrays.
-    static Strategy *centreT4T(std::pair<int, int> coord, std::pair<int, int> dimensions);
-    static Strategy *centre(std::pair<int, int> coord, std::pair<int, int> dimensions);
-    static Strategy *random(std::pair<int, int> coord, std::pair<int, int> dimensions);
-//    static Strategy *randomBlocks(std::pair<int, int> coord, std::pair<int, int> dimensions);
-    static Strategy *random_NonST4T(std::pair<int, int> coord, std::pair<int, int> dimensions);
-    static Strategy *random_threshold_DefT4T(std::pair<int, int> coord, std::pair<int, int> dimensions);
+    static StrategyMethod centreT4T;
+    static StrategyMethod centre;
+    static StrategyMethod random;
+//    static StrategyMethod randomBlocks;
+    static StrategyMethod random_NonST4T;
+    static StrategyMethod random_threshold_DefT4T;
 
     static void SetRadius(double newRadius);
     static void SetCentreStrat(StrategyList newStrat);

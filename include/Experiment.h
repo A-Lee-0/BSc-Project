@@ -104,7 +104,7 @@ protected:
     int repeatExperiments;
     bool saveBitmaps = false;
     bool returnGlobalData = true;
-    StrategyMethod initialStrategiesMethod;
+    StrategyMethodPnt initialStrategiesMethod;
     UpdateList updateType;
 };
 

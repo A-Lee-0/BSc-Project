@@ -185,7 +185,7 @@ StrategyList SuspiciousTitForTat::getName() {
 
 
 // Functions to produce initial strategy arrays.
-std::map<StrategyMethod, std::string> StrategyGeneratorNames = {{Strategy::centreT4T,"CentreT4T"},
+std::map<StrategyMethodPnt, std::string> StrategyGeneratorNames = {{Strategy::centreT4T,"CentreT4T"},
                                                                 {Strategy::centre,"centre"},
                                                                 {Strategy::random,"random"},
 //                                                                {Strategy::randomBlocks,"randomBlocks"},

@@ -84,7 +84,7 @@ IncrementGamesPerRound::IncrementGamesPerRound(){
     networkSize = 100;
     repeatExperiments = 1;
     updateType = UpdateList::G_GDP;
-    initialStrategiesMethod = Strategy::random;
+    initialStrategiesMethod = &Strategy::random;
 }
 
 void IncrementGamesPerRound::Run(){
@@ -98,10 +98,16 @@ void IncrementGamesPerRound::Run(){
     boost::progress_display GPRProg(progress);
     std::string updateString = UpdateListStrings[updateType];
     for (int j = 0; j != repeatExperiments; j++) {
+        std::string filepath = newDirectory + "\\iter" + std::to_string(j);
+        Network network = Network(networkSize, networkSize, initialStrategiesMethod, updateType, filepath);
+        std::string pathToStartingNetwork = filepath + "\\StartingNetwork.txt";
+        network.exportNetwork(pathToStartingNetwork);
+
         for (int i = 1; i != maxGPR; i++) {
-            std::string filepath = newDirectory + "\\gprTest_" + updateString + "_CM_auto\\random_" + std::to_string(i) + "gpr";
-            Network network = Network(networkSize, networkSize, initialStrategiesMethod, updateType, filepath);
-            network.connectNearestNeighbours();
+            //Network network = Network(networkSize, networkSize, initialStrategiesMethod, updateType, filepath);
+            network = Network(pathToStartingNetwork);
+
+            //network.connectNearestNeighbours();
             playNRounds(network, numRounds, i, saveBitmaps, returnGlobalData);
             ++GPRProg;
         }
@@ -138,7 +144,7 @@ RepeatExperiment::RepeatExperiment(){
     networkSize = 100;
     repeatExperiments = 200;
     updateType = UpdateList::SL_ThresholdScoreTB;
-    initialStrategiesMethod = Strategy::random;
+    initialStrategiesMethod = &Strategy::random;
 }
 
 void RepeatExperiment::Run(){
@@ -259,7 +265,7 @@ ConsoleReturn Experiment::_SetFoundParameter(ParameterName param, std::string ne
                     return ConsoleReturn::Success;
                 }
             }
-            return ConsoleReturn::UnknownFailure;
+            return ConsoleReturn::InvalidNewValue;
         case ParameterName::InitialStrategiesMethod:
             for (auto &i : StrategyGeneratorNames) {
                 if (i.second == newValue){
@@ -267,7 +273,7 @@ ConsoleReturn Experiment::_SetFoundParameter(ParameterName param, std::string ne
                     return ConsoleReturn::Success;
                 }
             }
-            return ConsoleReturn::UnknownFailure;
+            return ConsoleReturn::InvalidNewValue;
         default:
             return ConsoleReturn::UnknownFailure;//"Shouldn't see this!";
     }

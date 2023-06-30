@@ -33,7 +33,9 @@ int main() {
     Update::SetRNG(gen);
 
     Experiment * experiment = new RepeatExperiment();
-    Experiment &experimentRef = *experiment;
+    //Experiment * experiment = new IncrementGamesPerRound();
+    experiment->SetParameter("SaveBitmaps","1");
+    //experiment->SetParameter("MaxGPR","3");
 
 
     bool inputting = true;
@@ -225,7 +227,7 @@ int main() {
     return 0;
 }
 
-void runAllUpdatesForAllGPRs(int maxGPR,int rounds, Strategy* strategyFunc(std::pair<int, int>, std::pair<int, int>)){
+void runAllUpdatesForAllGPRs(int maxGPR,int rounds, StrategyMethod strategyFunc){
     unsigned long noUpdateTypes = (int) UpdateList::G_GDP;
 //    boost::progress_display showUpdateProg(noUpdateTypes);
 //    boost::progress_display showGPRProg((unsigned long) maxGPR);

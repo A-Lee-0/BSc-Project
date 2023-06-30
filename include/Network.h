@@ -20,6 +20,12 @@ enum class UpdateList {L_Threshold, L_MostWins, SL_Interrogate, SL_ThresholdScor
 
 enum class Outcome {Cooperate, Defect};
 
+//Alias functions to produce grids of strategies and updateStrategies.
+typedef Strategy* StrategyMethod(std::pair<int, int>, std::pair<int, int>);
+typedef StrategyMethod* StrategyMethodPnt;
+typedef Update* UpdateMethod(std::pair<int, int>, std::pair<int, int>,UpdateList);
+typedef UpdateMethod* UpdateMethodPnt;
+
 
 /*
  * Network class
@@ -32,13 +38,13 @@ class Network {
 public:
     Network(int, int, StrategyList);
 
-    Network(int, int, Strategy* (std::pair<int, int>, std::pair<int, int>));
+    Network(int, int, StrategyMethodPnt);
 
-    Network(int, int, Strategy* (std::pair<int, int>, std::pair<int, int>), UpdateList, std::string subDir);
+    Network(int, int, StrategyMethodPnt, UpdateList, std::string subDir);
 
-    Network(int, int, Strategy* (std::pair<int, int>, std::pair<int, int>), Update* (std::pair<int, int>, std::pair<int, int>,UpdateList), std::string subDir, UpdateList defaultUpdateType);
+    Network(int, int, StrategyMethodPnt, UpdateMethodPnt, std::string subDir, UpdateList defaultUpdateType);
 
-    Network(int, int, Strategy* (std::pair<int, int>, std::pair<int, int>), Update* (std::pair<int, int>, std::pair<int, int>,UpdateList), std::string subDir, UpdateList defaultUpdateType, int blocksize);
+    Network(int, int, StrategyMethodPnt, UpdateMethodPnt, std::string subDir, UpdateList defaultUpdateType, int blocksize);
 
     Network(std::string filepath);
 

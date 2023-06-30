@@ -50,7 +50,7 @@ Network::Network(int xDim, int yDim, StrategyList defaultStrategy) : xDim(xDim),
  * - the first is the current coordinate and the second is the dimension of the network. It should return a pointer to a
  * new strategy.
  */
-Network::Network(int xDim, int yDim, Strategy* strategyFunc(std::pair<int, int>, std::pair<int, int>)) : xDim(xDim), yDim(yDim) {
+Network::Network(int xDim, int yDim, StrategyMethodPnt strategyFunc) : xDim(xDim), yDim(yDim) {
     for (int x = 0; x < xDim; x++) {
         for (int y = 0; y < yDim; y++) {
             Node node = Node(x,y,strategyFunc({x,y},{xDim,yDim}),this);
@@ -60,7 +60,7 @@ Network::Network(int xDim, int yDim, Strategy* strategyFunc(std::pair<int, int>,
     }
 }
 
-Network::Network(int xDim, int yDim, Strategy* strategyFunc(std::pair<int, int>, std::pair<int, int>), UpdateList updateType, std::string subDir) : xDim(xDim), yDim(yDim),subDir(subDir) {
+Network::Network(int xDim, int yDim, StrategyMethodPnt strategyFunc, UpdateList updateType, std::string subDir) : xDim(xDim), yDim(yDim),subDir(subDir) {
 
     createDirectory(subDir);
 
@@ -73,7 +73,7 @@ Network::Network(int xDim, int yDim, Strategy* strategyFunc(std::pair<int, int>,
     }
 }
 
-Network::Network(int xDim, int yDim, Strategy* strategyFunc(std::pair<int, int>, std::pair<int, int>), Update* updateFunc(std::pair<int,int>,std::pair<int,int>,UpdateList), std::string subDir, UpdateList defaultUpdateType) : xDim(xDim), yDim(yDim),subDir(subDir) {
+Network::Network(int xDim, int yDim, StrategyMethodPnt strategyFunc, UpdateMethodPnt updateFunc, std::string subDir, UpdateList defaultUpdateType) : xDim(xDim), yDim(yDim),subDir(subDir) {
     createDirectory(subDir);
     for (int x = 0; x < xDim; x++) {
         for (int y = 0; y < yDim; y++) {
@@ -84,7 +84,7 @@ Network::Network(int xDim, int yDim, Strategy* strategyFunc(std::pair<int, int>,
     }
 }
 
-Network::Network(int xDim, int yDim, Strategy* strategyFunc(std::pair<int, int>, std::pair<int, int>), Update* updateFunc(std::pair<int,int>,std::pair<int,int>,UpdateList), std::string subDir, UpdateList defaultUpdateType, int blocksize) : xDim(xDim), yDim(yDim),subDir(subDir) {
+Network::Network(int xDim, int yDim, StrategyMethodPnt strategyFunc, UpdateMethodPnt updateFunc, std::string subDir, UpdateList defaultUpdateType, int blocksize) : xDim(xDim), yDim(yDim),subDir(subDir) {
     Network network2 = Network((xDim/blocksize) +1, (yDim/blocksize)+1, strategyFunc, updateFunc, subDir, defaultUpdateType);
     createDirectory(subDir);
     for (int x = 0; x < xDim; x++) {
