@@ -2,22 +2,16 @@
 #include <vector>
 #include <map>
 #include <random>
-#include <string>
 #include <boost/random.hpp>
 #include <ctime>
 #include <boost/filesystem.hpp>
-#include <boost/progress.hpp>
 
-
+#include "SGCB_Config.h"
 #include "Network.h"
 #include "Strategy.h"
 #include "Update.h"
 #include "Game.h"
-#include "bitmap_image.hpp"
-#include "Drawing.h"
-#include "SGCB_Config.h"
 #include "Experiment.h"
-#include <ctime>
 
 std::time_t startTime_main;
 boost::random::mt19937 gen(static_cast<unsigned int>(std::time(&startTime_main)));
@@ -53,8 +47,10 @@ int main() {
         if ( input == "run") {
             std::cout << "Start the experiment!" << std::endl;
             inputting = false;
+            experiment->Run();
         }
         else if ( input == "help") {
+            //TODO: make 'help' actually helpful!
             std::cout << "Need to implement changing experiment parameters from console!" << std::endl;
         }
         else if ( input.substr(0,4) == "set ") {
@@ -109,17 +105,31 @@ int main() {
 
         else if ( input == "params") {
             try {
-                std::cout << "Parameters for experiment type '" << experiment->getName() << "':" << std::endl;
-                std::vector<std::string> paramNames = ListParameterNames(experiment);
-                ulong maxLength = 0;
-                for (std::string name : paramNames) {
-                    if (name.length() > maxLength) { maxLength = name.length(); }
+                PrintParameterTable(experiment);
+            }
+            catch (...) {
+                std::cout << "Something went wrong..." << std::endl;
+            }
+        }
+
+        else if ( input.substr(0,11) == "experiment ") {
+            try {
+                std::string instruction = input.substr(11, input.length() - 11);
+                auto pos = instruction.find(" ");   // only look upto first space, in case someone just flips 'set' to 'get'
+                std::string newExperimentName = instruction.substr(0, pos);
+
+                if(experimentNameMap.count(newExperimentName)){
+                    ExperimentList experimentType = experimentNameMap.at(newExperimentName);
+                    delete experiment;
+                    experiment = CreateExperiment(experimentType);
+                    std::cout << "Created new experiment of type '" << experiment->getName() << "'." << std::endl;
+                    PrintParameterTable(experiment);
                 }
-                std::cout << "    " << "Param" << std::string(2+maxLength-5,' ') << "Value" << std::endl;
-                for (std::string name : paramNames){
-                    ParameterName param = parameterEnumMap.at(name);
-                    std::string value = experiment->GetParameter(param);
-                    std::cout << "    " << name << std::string(2+maxLength-name.length(),' ') << value << std::endl;
+                else{
+                    std::cout << "new Experiment '" << newExperimentName << "' is not a recognised Experiment type. Valid Experiments are: " << std::endl;
+                    for(const auto &exPair : experimentNameMap){
+                        std::cout << "    " << exPair.first << std::endl;
+                    }
                 }
             }
             catch (...) {
@@ -127,16 +137,27 @@ int main() {
             }
         }
 
+        else if ( input == "experiment") {
+            try {
+                std::cout << "The current Experiment is: " << experiment->getName() << std::endl;
+                std::cout << "Desciption: " << experiment->getDescription() << std::endl;
+                std::cout << "Valid Experiments are: " << std::endl;
+                for(const auto &exPair : experimentNameMap){
+                    std::cout << "    " << exPair.first << std::endl;
+                }
+            }
+            catch (...) {
+                std::cout << "Something went wrong..." << std::endl;
+            }
+        }
+
+        //TODO: allow displying 'special' param permitted values, i.e. for InitialStrategiesMethod and UpdateType
+        //TODO: allow setting StrategyGenerator parameters, e.g. centreStrat, surroundingStrat
+
         else{
             std::cout << "No intruction recognised... try 'help' to see your options." << std::endl;
         }
     }
-
-    //Experiment * test = new LoopOneUpdateType();
-    //test->repeatExperiments = 10;
-    std::cout << "Name: " << experiment->getName() << std::endl;
-    experiment->Run();
-    //test.run();
 
 
 /*
@@ -154,8 +175,8 @@ int main() {
 
     //centreStrat = StrategyList::AlwaysDefect;
     //surroundingsStrat = StrategyList::AlwaysCooperate;
-    UpdateList updateType = UpdateList::SL_Interrogate;
-    std::string updateString = UpdateListStrings[updateType];
+    //UpdateList updateType = UpdateList::SL_Interrogate;
+    //std::string updateString = UpdateListStrings[updateType];
     /*for (int i = 0; i != 200; i++){
         std::cout << updateString << i << std::endl;
 
@@ -197,8 +218,10 @@ int main() {
 
     t = time(0);   // get time now
     now = localtime( & t );
-    std::cout << "Time: " << (now->tm_year + 1900) << '-' << (now->tm_mon + 1) << '-' << now->tm_mday << ' '
-              << now->tm_hour << ':' << now->tm_min << ':' << now->tm_sec << std::endl;
+    char datetime[20];
+    strftime(datetime,20,"%Y-%m-%d %H%M",now);
+    std::cout << std::endl;
+    std::cout << "Time Finished: " << datetime << std::endl;
     return 0;
 }
 

@@ -14,8 +14,13 @@
 #define READ_MEMBER_VAR_MAP(object,objectMap,key)  (object->*(object->objectMap.at(key)))
 
 enum class ExperimentList {IncrementGamesPerRound, RepeatExperiment};
+static std::map<std::string, ExperimentList> experimentNameMap = {{"IncrementGamesPerRound", ExperimentList::IncrementGamesPerRound},
+                                                           {"RepeatExperiment", ExperimentList::RepeatExperiment}};
 
 class Experiment;
+
+Experiment * CreateExperiment(ExperimentList);
+void PrintParameterTable(Experiment *);
 
 enum class ParameterName {
     NumRounds,

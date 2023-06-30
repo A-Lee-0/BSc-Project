@@ -7,12 +7,16 @@
 #include <boost/lexical_cast.hpp>
 #include <boost/algorithm/string.hpp>
 #include "Game.h"
-//#include <ctime>
-#include <typeinfo>
 
-std::map<std::string, ExperimentList> experimentNames = {{"IncrementGamesPerRound", ExperimentList::IncrementGamesPerRound},
-                                                         {"RepeatExperiment", ExperimentList::RepeatExperiment}};
 
+Experiment * CreateExperiment(ExperimentList experiment) {
+    switch (experiment) {
+        case ExperimentList::IncrementGamesPerRound:
+            return new IncrementGamesPerRound();
+        case ExperimentList::RepeatExperiment:
+            return new RepeatExperiment();
+    }
+}
 
 std::vector<std::string> ListParameterNames(Experiment * experiment){
     return ListParameterNames(*experiment, (*experiment).ListParameters());
@@ -78,23 +82,31 @@ IncrementGamesPerRound::IncrementGamesPerRound(){
     maxGPR = 15;
     numRounds = 50;
     networkSize = 100;
+    repeatExperiments = 1;
     updateType = UpdateList::G_GDP;
     initialStrategiesMethod = Strategy::random;
 }
 
 void IncrementGamesPerRound::Run(){
-    boost::progress_display GPRProg(maxGPR);
+    time_t t = time(0);   // get time now
+    struct tm * now = localtime( & t );
+    char datetime[20];
+    strftime(datetime,20,"%Y-%m-%d %H%M",now);
+    std::string newDirectory = std::string(datetime) + "\\" + name;
 
+    ulong progress = maxGPR*repeatExperiments;
+    boost::progress_display GPRProg(progress);
     std::string updateString = UpdateListStrings[updateType];
-    for (int j = 1; j != repeatExperiments; j++) {
+    for (int j = 0; j != repeatExperiments; j++) {
         for (int i = 1; i != maxGPR; i++) {
-            std::string filepath = name + "gprTest_" + updateString + "_CM_auto\\random_" + std::to_string(i) + "gpr";
+            std::string filepath = newDirectory + "\\gprTest_" + updateString + "_CM_auto\\random_" + std::to_string(i) + "gpr";
             Network network = Network(networkSize, networkSize, initialStrategiesMethod, updateType, filepath);
             network.connectNearestNeighbours();
             playNRounds(network, numRounds, i, saveBitmaps, returnGlobalData);
             ++GPRProg;
         }
     }
+
 }
 
 std::string IncrementGamesPerRound::GetParameter(std::string paramName){
@@ -164,7 +176,7 @@ std::string RepeatExperiment::GetParameter(ParameterName param){
 std::vector<ParameterName> RepeatExperiment::ListParameters(){
     return parameters;
 };
-
+//TODO: Continue moving functions and commented out code blocks into here as more experiments.
 
 
 
@@ -285,4 +297,18 @@ ConsoleReturn Experiment::_SetFoundBool(ParameterName param, bool newValue){
     }
     return ConsoleReturn::InvalidType;
 
+}
+
+void PrintParameterTable(Experiment * ex){
+    std::vector<std::string> paramNames = ListParameterNames(ex);
+    ulong maxLength = 0;
+    for (std::string name : paramNames) {
+        if (name.length() > maxLength) { maxLength = name.length(); }
+    }
+    std::cout << "    " << "Param" << std::string(2+maxLength-5,' ') << "Value" << std::endl;
+    for (std::string name : paramNames){
+        ParameterName param = parameterEnumMap.at(name);
+        std::string value = ex->GetParameter(param);
+        std::cout << "    " << name << std::string(2+maxLength-name.length(),' ') << value << std::endl;
+    }
 }
