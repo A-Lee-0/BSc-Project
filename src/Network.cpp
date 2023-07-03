@@ -84,11 +84,11 @@ Network::Network(int xDim, int yDim, StrategyMethodPnt strategyFunc, UpdateMetho
 }
 
 Network::Network(int xDim, int yDim, StrategyMethodPnt strategyFunc, UpdateMethodPnt updateFunc, std::string subDir, UpdateList defaultUpdateType, int blocksize) : xDim(xDim), yDim(yDim),subDir(subDir) {
-    Network network2 = Network((xDim/blocksize) +1, (yDim/blocksize)+1, strategyFunc, updateFunc, subDir, defaultUpdateType);
+    Network newNetwork = Network((xDim/blocksize) +1, (yDim/blocksize)+1, strategyFunc, updateFunc, subDir, defaultUpdateType);
     createDirectory(subDir);
     for (int x = 0; x < xDim; x++) {
         for (int y = 0; y < yDim; y++) {
-            Strategy * strategy = GetStrategyFromStrategyList(network2.getNodeByCoord({x/blocksize,y/blocksize}).getCurrentStrategy());
+            Strategy * strategy = GetStrategyFromStrategyList(newNetwork.getNodeByCoord({x/blocksize,y/blocksize}).getCurrentStrategy());
             Node node = Node(x,y,strategy,this);
             node.setUpdateType(updateFunc({x,y},{xDim,yDim},defaultUpdateType));
             nodeMap.insert({{x,y},node});
@@ -170,16 +170,16 @@ void Network::connectNearestNeighbours() {
     {
         int x = it->first.first;
         int y = it->first.second;
-        int xUpper = x!=this->xDim - 1  ?   x+1     :   0;
-        int yLower = y!=0               ?   y-1     :   this->yDim - 1;
-        int yUpper = y!=this->yDim - 1  ?   y+1     :   0;
+        int xUpper = ( x!= xDim-1  ?  x+1 : 0 );
+        int yLower = ( y!= 0       ?  y-1 : yDim-1 );
+        int yUpper = ( y!= yDim-1  ?  y+1 : 0 );
 
         Network::Node* pNode = &(it->second);
 
-        this->edges.push_back({pNode, &(this->getNodeByCoord({xUpper,yLower}))});   // /^
-        this->edges.push_back({pNode, &(this->getNodeByCoord({xUpper,y}))});        // ->
-        this->edges.push_back({pNode, &(this->getNodeByCoord({xUpper,yUpper}))});   // \.
-        this->edges.push_back({pNode, &(this->getNodeByCoord({x, yUpper}))});       // \|/
+        this->edges.push_back({pNode, &(this->getNodeByCoord({xUpper,yLower}))});   // ↗
+        this->edges.push_back({pNode, &(this->getNodeByCoord({xUpper,y}))});        // →
+        this->edges.push_back({pNode, &(this->getNodeByCoord({xUpper,yUpper}))});   // ↘
+        this->edges.push_back({pNode, &(this->getNodeByCoord({x, yUpper}))});       // ↓
     }
 }
 

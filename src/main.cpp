@@ -2,16 +2,17 @@
 #include <vector>
 #include <map>
 #include <random>
-#include <boost/random.hpp>
 #include <ctime>
-#include <boost/filesystem.hpp>
 
+#include "Input.h"
 #include "SGCB_Config.h"
-#include "Experiment.h"
+//#include "Experiment.h"
+
 
 
 std::time_t startTime_main;
 boost::random::mt19937 gen(static_cast<unsigned int>(std::time(&startTime_main)));
+
 
 
 int main() {
@@ -36,130 +37,19 @@ int main() {
     //experiment->SetParameter("MaxGPR","3");
 
 
+
     bool inputting = true;
     while (inputting){
         std::cout << "Enter 'run' to start the experiment." << std::endl;
-        //std::cout << "Enter 'run' to start the experiment, or enter 'help' to see other options." << std::endl;
-        char rawInput[50];
-        std::cin.getline(rawInput,50);
+        bool result;
+        result = Input::ProcessInput(experiment);
 
-        std::cin.clear();
-        //std::cin.ignore(std::numeric_limits<std::streamsize>::max());
-
-        std::string input = std::string(rawInput);
-
-        if ( input == "run") {
-            std::cout << "Start the experiment!" << std::endl;
+        if (result){
             inputting = false;
         }
-        else if ( input == "help") {
-            //TODO: make 'help' actually helpful!
-            std::cout << "Need to implement changing experiment parameters from console!" << std::endl;
-        }
-        else if ( input.substr(0,4) == "set ") {
-            try {
-                std::string instruction = input.substr(4, input.length() - 4);
-                auto pos = instruction.find(" ");
-                std::string paramName = instruction.substr(0, pos);
-                std::string newValue = instruction.substr(pos + 1);
-                //std::cout << "Attempting to set parameter '" << paramName << "' to the value '" << newValue << "'."
-                //          << std::endl;
-                //experiment->SetParameter(paramName, newValue);
-                ConsoleReturn consRet = experiment->SetParameter(paramName, newValue);
-                switch (consRet) {
-                    case ConsoleReturn::Success:
-                        std::cout << "Parameter name '" << paramName << "' successfully changed to '"
-                                  << experiment->GetParameter(paramName) << "'." << std::endl;
-                        break;
-                    case ConsoleReturn::UnknownParamString:
-                        std::cout << "Parameter name '" << paramName << "' was not recognised." << std::endl;
-                        break;
-                    case ConsoleReturn::NotApplicableParam:
-                        std::cout << "Parameter name '" << paramName << "' is not used by experiment type '"
-                                  << experiment->getName() << "'." << std::endl;
-                        break;
-                    default:
-                        std::cout << "Something went wrong! Parameter '" << paramName << "' is currently '"
-                                  << (experiment->GetParameter(paramName)) << "'." << std::endl;
-                        break;
-                }
-            }
-            catch (...){
-                std::cout << "Something went wrong..." << std::endl;
-            }
-        }
-        else if ( input.substr(0,4) == "get ") {
-            try {
-                std::string instruction = input.substr(4, input.length() - 4);
-                auto pos = instruction.find(" ");   // only look upto first space, in case someone just flips 'set' to 'get'
-                std::string paramName = instruction.substr(0, pos);
-                //std::cout << "Attempting to get the current value of parameter '" << paramName << "'." << std::endl;
-                std::vector<std::string> paramNames = ListParameterNames(experiment);
-                if (std::find(paramNames.begin(), paramNames.end(), paramName) != paramNames.end()) {
-                    ParameterName param = parameterEnumMap.at(paramName);
-                    std::cout << "Parameter '" << paramName << "' is currently '" << (experiment->GetParameter(param))
-                              << "'." << std::endl;
-                }
-            }
-            catch (...) {
-                std::cout << "Something went wrong..." << std::endl;
-            }
-        }
 
-        else if ( input == "params") {
-            try {
-                PrintParameterTable(experiment);
-            }
-            catch (...) {
-                std::cout << "Something went wrong..." << std::endl;
-            }
-        }
-
-        else if ( input.substr(0,11) == "experiment ") {
-            try {
-                std::string instruction = input.substr(11, input.length() - 11);
-                auto pos = instruction.find(" ");   // only look upto first space, in case someone just flips 'set' to 'get'
-                std::string newExperimentName = instruction.substr(0, pos);
-
-                if(experimentNameMap.count(newExperimentName)){
-                    ExperimentList experimentType = experimentNameMap.at(newExperimentName);
-                    delete experiment;
-                    experiment = CreateExperiment(experimentType);
-                    std::cout << "Created new experiment of type '" << experiment->getName() << "'." << std::endl;
-                    PrintParameterTable(experiment);
-                }
-                else{
-                    std::cout << "new Experiment '" << newExperimentName << "' is not a recognised Experiment type. Valid Experiments are: " << std::endl;
-                    for(const auto &exPair : experimentNameMap){
-                        std::cout << "    " << exPair.first << std::endl;
-                    }
-                }
-            }
-            catch (...) {
-                std::cout << "Something went wrong..." << std::endl;
-            }
-        }
-
-        else if ( input == "experiment") {
-            try {
-                std::cout << "The current Experiment is: " << experiment->getName() << std::endl;
-                std::cout << "Desciption: " << experiment->getDescription() << std::endl;
-                std::cout << "Valid Experiments are: " << std::endl;
-                for(const auto &exPair : experimentNameMap){
-                    std::cout << "    " << exPair.first << std::endl;
-                }
-            }
-            catch (...) {
-                std::cout << "Something went wrong..." << std::endl;
-            }
-        }
-
-        //TODO: allow displying 'special' param permitted values, i.e. for InitialStrategiesMethod and UpdateType
+        //TODO: allow displaying 'special' param permitted values, i.e. for InitialStrategiesMethod and UpdateType
         //TODO: allow setting StrategyGenerator parameters, e.g. centreStrat, surroundingStrat
-
-        else{
-            std::cout << "No intruction recognised... try 'help' to see your options." << std::endl;
-        }
     }
 
 
@@ -218,22 +108,6 @@ int main() {
     //runAllUpdatesForAllGPRs(15,50, random);
     //runAllUpdatesForAllGPRs_BlockNetwork(15,50,random, 5);
     //runAllUpdatesForAllGPRs_CentreNetwork(15,50,centre, 0.5);
-
-    t = time(0);   // get time now
-    now = localtime( & t );
-    char datetime[20];
-    strftime(datetime,20,"%Y-%m-%d %H:%M",now);
-    std::cout << std::endl;
-    std::cout << "Time Started: " << datetime << std::endl;
-
-    experiment->Run();
-
-    t = time(0);   // get time now
-    now = localtime( & t );
-    datetime[20];
-    strftime(datetime,20,"%Y-%m-%d %H:%M",now);
-    std::cout << std::endl;
-    std::cout << "Time Finished: " << datetime << std::endl;
     return 0;
 }
 

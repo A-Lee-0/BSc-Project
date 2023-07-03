@@ -60,6 +60,7 @@ std::string Experiment::getDescription() {
 void Experiment::Run() {
     throw std::logic_error("using stub experiment!");
 }
+//TODO: implement system to save a txt file to disk in the experiment's directory, to store the parameters of the experiment.
 
 
 std::string Experiment::GetParameter(std::string paramName) { return "Dummy string"; };
@@ -184,7 +185,9 @@ std::vector<ParameterName> RepeatExperiment::ListParameters(){
 };
 //TODO: Continue moving functions and commented out code blocks into here as more experiments.
 
+//TODO: Consider idea of meta-parameters, e.g. the repeatExperiments. Instead of just having some number of repeats, consider creating a set of values for some parameter, and the program automatically iterating through the set, saving each experiment in turn.
 
+//TODO: Add flag to start experiments with the same initial network - i.e. the same strategies in the same positions.
 
 
 

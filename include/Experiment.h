@@ -1,5 +1,5 @@
 //
-// Created by Andrew on 28/06/2023.
+// Created by Andrew Lee on 28/06/2023.
 //
 
 #ifndef SGCB_EXPERIMENT_H
@@ -17,6 +17,7 @@ static std::map<std::string, ExperimentList> experimentNameMap = {{"IncrementGam
 
 class Experiment;
 
+//TODO consider moving these to be static member functions of Experiment. That way they're accessed with the Experiment:: 'namespace', which I'd prefer.
 Experiment * CreateExperiment(ExperimentList);
 void PrintParameterTable(Experiment *);
 

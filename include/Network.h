@@ -61,6 +61,7 @@ public:
      */
     class Node {
     public:
+        //TODO: implement system to allow the node and its connections to be saved to a text file, and then reloaded back in. This would allow for the generation, saving and reloading of networks that aren't just periodic rectangular!
         Node(int,int,Strategy*,Network*);
 
         Node(Strategy*);
