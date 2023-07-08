@@ -62,6 +62,7 @@ namespace Input {
         if(TEST_ANSI){
             std::string cppString = TestANSICodes();
             printCP(cppString);
+            TEST_ANSI = false;      // only print the test strings once.
         }
 
         //std::pair<int,int> termSize = Console::GetSize();
@@ -69,6 +70,11 @@ namespace Input {
 
         // 1. Read input from Console
         std::string inputString = Console::GetInput();
+        Console::ResetLine();   // we have the string, so clear the line and reprint it formatted.
+        std::stringstream printString;
+        printString << ansi_escape_codes::color_rgb(80,80,255) << ansi_escape_codes::bold;
+        printString << inputString << ansi_escape_codes::reset << std::endl;
+        printCP(printString.str());  // Print formatted input
 
         // 2. Look for corresponding input instruction
         InputInstruction instruction;
