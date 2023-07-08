@@ -2,19 +2,17 @@
 // Created by Andrew Lee on 01/07/2023.
 //
 
-#include "Input.h"
 #include <boost/algorithm/string.hpp>
 #include <map>
+
+#include "ANSI_codes.h"
+#include "Input.h"
+#include "Console.h"
 
 //typedef void (InputCommand::*InputExecuteMethod)(); // function pointer type
 
 #define RETURN_QUIT true
 #define RETURN_CONTINUE false
-
-#define INPUT_COMMAND_MAP(instruction,memberName) ()
-
-
-// std::map<InputInstruction, InputExecuteMethod> InputExecuteMap = {{InputInstruction::Help,&InputCommandHelp::Execute}};
 
 
 namespace {
@@ -44,44 +42,51 @@ namespace {
 //    InputCommandAppendListParam AppendListParam( std::vector<std::string>{"append"} );
 //    InputCommandRemoveListParam RemoveListParam( std::vector<std::string>{"remove"} );
     InputCommandQuit Quit( std::vector<std::string>{"quit","q"} );
-
-
 }
+
 
 static bool returnValue;
 namespace Input {
+    bool TEST_ANSI = false;
+
+    /**This function reads the input from the terminal using the Console module, and determines if it contains a valid
+     * instruction. If so, it then calls the corresponding function.
+     * (if any) to handle that inpu
+     *
+     * @param experiment
+     * @return
+     */
     bool ProcessInput(Experiment* experiment) {
         returnValue = RETURN_CONTINUE; //slightly gross to have a variable shared across the entire file, but simpler than adding a bool output to however many nested function calls I'll be making!
 
-
-        std::cout << "There are " << inputCommands.size() << " valid commands." << std::endl;
-        for( auto* command :inputCommands){
-
+        if(TEST_ANSI){
+            std::string cppString = TestANSICodes();
+            printCP(cppString);
         }
 
-        // 1. Read input from cin
-        std::string rawInput;
-        //std::getline(std::cin,rawInput);
-        std::getline(std::cin >> std::ws, rawInput);
-        boost::trim(rawInput);
+        //std::pair<int,int> termSize = Console::GetSize();
+        //printCP("Terminal is currently " + std::to_string(termSize.first) + " rows, and " + std::to_string(termSize.second) + " columns large.\n");
 
+        // 1. Read input from Console
+        std::string inputString = Console::GetInput();
+
+        // 2. Look for corresponding input instruction
         InputInstruction instruction;
         std::string argString;
-
         std::pair<InputInstruction,std::string> parsedInput;
 
         try {
-            parsedInput = FindInstructionFromString(rawInput);
+            parsedInput = FindInstructionFromString(inputString);
         }
         catch (UnknownInstruction) {
-            std::cout << "No command recognised... try 'help' to see your options." << std::endl;
+            // 3a. Break if no instruction is found
+            printCP("No command recognised... try 'help' to see your options.\n");
             return RETURN_CONTINUE;
         }
 
+        // 3b. Call the corresponding function if instruction is found
         instruction = parsedInput.first;
         argString = parsedInput.second;
-
-        //std::cout << "instruction parsed. args: " << argString << std::endl;
 
         CallInstructionFunction(instruction, experiment, argString);
         return returnValue;
@@ -90,11 +95,7 @@ namespace Input {
 
 
 
-
-
-
-/**
- * Processes the string produced by a std::cin.getline(). If the characters up to the first space in the string (or the
+/**Processes the string produced by a Console::GetInput(). If the characters up to the first space in the string (or the
  * entire string) match an Instruction Keyword in InputInstructionKeywords, then return the associated InputInstruction.
  * Otherwise raise exception.
  *
@@ -132,6 +133,7 @@ std::pair<InputInstruction,std::string> FindInstructionFromString(std::string in
 }
 
 namespace {
+
     template<> InputInstruction InputCommandInter<InputCommandHelp>::instruction = InputInstruction::Help;
     template<> std::string InputCommandInter<InputCommandHelp>::docString = "Help: Prints details of all instructions.";
     template<> std::string InputCommandInter<InputCommandHelp>::argString = "    Args: none";
@@ -142,26 +144,27 @@ namespace {
     template<> void InputCommandInter<InputCommandHelp>::Execute(Experiment* experiment, std::string args) {
         //std::map<InputInstruction, std::list<std::string>> reverseKeywordLookup;
 
+        uint printWidth = Console::GetSize().second;
+        std::string divider = std::string(printWidth, '-') + "\n";
+
         // print details for each instruction
         for(auto command : inputCommands){
             // output dividing line between instructions
-            std::cout << ""
-    "------------------------------------------------------------------------------------------------------------------------"
-                      << std::endl;
+            printCP(divider);
 
             // output instruction name and what it does
-            std::cout << command->getDocString() << std::endl;
+            printCP(command->getDocString() + "\n");
 
             // output the keyword options to use the instruction
             std::string keys = "  Commands: ";
             for (auto key : command->getKeywords()){
                 keys += "\'" + key + "\', ";
             }
-            std::string fullKeys = keys.substr(0, keys.size()-3);
-            std::cout << fullKeys << std::endl;
+            std::string fullKeys = keys.substr(0, keys.size()-2);
+            printCP(fullKeys + "\n");
 
             // output the optional parameters for the instruction.
-            std::cout << command->getArgString() << std::endl;
+            printCP(command->getArgString() + "\n");
 
         }
     }
@@ -179,16 +182,16 @@ namespace {
         struct tm * now = localtime( & t );
         char datetime[20];
         strftime(datetime,20,"%Y-%m-%d %H:%M",now);
-        std::cout << std::endl; // add an extra line break
-        std::cout << "Time Started: " << datetime << std::endl;
+        printCP("\n");
+        printCP("Time Started: " + std::string(datetime) + "\n");
 
         experiment->Run();
 
         t = time(0);   // get time now
         now = localtime( & t );
         strftime(datetime,20,"%Y-%m-%d %H:%M",now);
-        std::cout << std::endl; // add an line break so it doesn't append to boost::progress
-        std::cout << "Time Finished: " << datetime << std::endl;
+        printCP("\n");  // add an line break so it doesn't append to boost::progress
+        printCP("Time Finished: " + std::string(datetime) + "\n");
     }
 
 
@@ -196,7 +199,7 @@ namespace {
     template<> InputInstruction InputCommandInter<InputCommandChangeExperiment>::instruction = InputInstruction::ChangeExperiment;
     template<> std::string InputCommandInter<InputCommandChangeExperiment>::docString =
             "Experiment: If no argument is given, gives details of the current experiment, and lists valid NewExperimentTypes.\n"
-            "            If there is an argument, discards the current experiment and creates a new one of the given NewExperimentType.";
+                    "            If there is an argument, discards the current experiment and creates a new one of the given NewExperimentType.";
     template<> std::string InputCommandInter<InputCommandChangeExperiment>::argString = "    Args: NewExperimentType";
     /**
      *
@@ -208,15 +211,15 @@ namespace {
         // If no args are supplied, just display the full details of the current experiment.
         if (args.length() == 0) {
             try {
-                std::cout << "The current Experiment is: " << experiment->getName() << std::endl;
-                std::cout << "Description: " << experiment->getDescription() << std::endl;
-                std::cout << "Valid Experiments are: " << std::endl;
+                printCP("The current Experiment is: " + experiment->getName() + "\n");
+                printCP("Description: " + experiment->getDescription() + "\n");
+                printCP("Valid Experiments are:\n");
                 for (const auto &exPair : experimentNameMap) {
-                    std::cout << "    " << exPair.first << std::endl;
+                    printCP("    " + exPair.first + "\n");
                 }
             }
             catch (...) {
-                std::cout << "Something went wrong..." << std::endl;
+                printCP("Something went wrong...\n");
             }
         }
 
@@ -231,18 +234,18 @@ namespace {
                     ExperimentList experimentType = experimentNameMap.at(newExperimentName);
                     delete experiment;
                     experiment = CreateExperiment(experimentType);
-                    std::cout << "Created new experiment of type '" << experiment->getName() << "'." << std::endl;
-                    PrintParameterTable(experiment);
+                    printCP("Created new experiment of type \'" + experiment->getName() + "\'.\n");
+                    printCP(PrintParameterTable(experiment));
                 }
                 else{
-                    std::cout << "new Experiment '" << newExperimentName << "' is not a recognised Experiment type. Valid Experiments are: " << std::endl;
+                    printCP("new Experiment '" + newExperimentName + "' is not a recognised Experiment type. Valid Experiments are:\n");
                     for(const auto &exPair : experimentNameMap){
-                        std::cout << "    " << exPair.first << std::endl;
+                        printCP("    " + exPair.first + "\n");
                     }
                 }
             }
             catch (...) {
-                std::cout << "Something went wrong..." << std::endl;
+                printCP("Something went wrong...\n");
             }
         }
 
@@ -252,9 +255,7 @@ namespace {
     template<> InputInstruction InputCommandInter<InputCommandSet>::instruction = InputInstruction::SetParam;
     template<> std::string InputCommandInter<InputCommandSet>::docString = "Set: Attempts to set a parameter for the experiment to a new value.";
     template<> std::string InputCommandInter<InputCommandSet>::argString = "    Args: ParameterName, NewValue";
-    /**
-     * Processes the string produced by a std::cin.getline(), whose first 4 characters are "set ", or equivalent.
-     * Attempts to set the value of a parameter for the current experiment to a given new value
+    /**Attempts to set the value of a parameter for the current experiment to a given new value.
      *
      * @param experiment - Pointer to the experiment whose parameter we are trying to set.
      * @param args - String containing the text entered by the user after the instruction keyword.
@@ -266,30 +267,29 @@ namespace {
             std::string newValue = args.substr(pos + 1);
             boost::trim(paramName);     // Shouldn't do anything, but better safe than sorry.
             boost::trim(newValue);
-            //std::cout << "Attempting to set parameter '" << paramName << "' to the value '" << newValue << "'."
-            //          << std::endl;
             //experiment->SetParameter(paramName, newValue);
             ConsoleReturn consRet = experiment->SetParameter(paramName, newValue);
+            std::stringstream printString;
             switch (consRet) {
                 case ConsoleReturn::Success:
-                    std::cout << "Parameter name '" << paramName << "' successfully changed to '"
-                              << experiment->GetParameter(paramName) << "'." << std::endl;
+                    printCP("Parameter name \'" + paramName + "\' successfully changed to \'"
+                                + experiment->GetParameter(paramName) + "\'.\n");
                     break;
                 case ConsoleReturn::UnknownParamString:
-                    std::cout << "Parameter name '" << paramName << "' was not recognised." << std::endl;
+                    printCP("Parameter name \'" + paramName + "\' was not recognised.\n");
                     break;
                 case ConsoleReturn::NotApplicableParam:
-                    std::cout << "Parameter name '" << paramName << "' is not used by experiment type '"
-                              << experiment->getName() << "'." << std::endl;
+                    printCP("Parameter name \'" + paramName + "\' is not used by experiment type \'"
+                                + experiment->getName() + "\'.\n");
                     break;
                 default:
-                    std::cout << "Something went wrong! Parameter '" << paramName << "' is currently '"
-                              << (experiment->GetParameter(paramName)) << "'." << std::endl;
+                    printCP("Something went wrong! Parameter \'" + paramName + "\' is currently \'"
+                                + (experiment->GetParameter(paramName)) + "\'.\n");
                     break;
             }
         }
         catch (...){
-            std::cout << "Something went wrong..." << std::endl;
+            printCP("Something went wrong...\n");
         }
     }
 
@@ -297,11 +297,9 @@ namespace {
     template<> InputInstruction InputCommandInter<InputCommandGet>::instruction = InputInstruction::GetParam;
     template<> std::string InputCommandInter<InputCommandGet>::docString = "Get: Displays the value of a parameter for the experiment.";
     template<> std::string InputCommandInter<InputCommandGet>::argString = "    Args: ParameterName";
-    /**
-     * Processes the string produced by a std::cin.getline(), whose first word is "get ", or equivalent.
-     * Attempts to return the value of a parameter specified in args.
+    /**Attempts to return the value of a parameter specified in args.
      *
-     * @param experiment - Pointer to the current experiment whose parameter we are trying to read.
+     * @param experiment - Pointer to the current experiment whose parameter we wish to know.
      * @param args - String containing the text entered by the user after the instruction keyword.
      */
     template<> void InputCommandInter<InputCommandGet>::Execute(Experiment* experiment, std::string args) {
@@ -309,16 +307,17 @@ namespace {
             auto pos = args.find(" ");  // only look upto first space, in case someone just flips 'set' to 'get'
             std::string paramName = args.substr(0, pos);
             boost::trim(paramName);     // Shouldn't do anything, but better safe than sorry.
-            //std::cout << "Attempting to get the current value of parameter '" << paramName << "'." << std::endl;
             std::vector<std::string> paramNames = ListParameterNames(experiment);
             if (std::find(paramNames.begin(), paramNames.end(), paramName) != paramNames.end()) {
                 ParameterName param = parameterEnumMap.at(paramName);
-                std::cout << "Parameter '" << paramName << "' is currently '" << (experiment->GetParameter(param))
+                std::stringstream printString;
+                printString << "Parameter '" << paramName << "' is currently '" << (experiment->GetParameter(param))
                           << "'." << std::endl;
+                printCP(printString.str());
             }
         }
         catch (...) {
-            std::cout << "Something went wrong..." << std::endl;
+            printCP("Something went wrong...\n");
         }
     }
 
@@ -326,17 +325,18 @@ namespace {
     template<> InputInstruction InputCommandInter<InputCommandDisplayParams>::instruction = InputInstruction::DisplayParams;
     template<> std::string InputCommandInter<InputCommandDisplayParams>::docString = "Params: Displays all of the parameters applicable to the current experiment, and their respective values.";
     template<> std::string InputCommandInter<InputCommandDisplayParams>::argString = "    Args: none";
-    /**
-     * @param experiment - Pointer to the current experiment whose parameter we are trying to read.
-     * @param args - String containing the text entered by the user after the instruction keyword.
+    /**Prints all of the parameters that are relevant to the current experiment.
+     *
+     * @param experiment - Pointer to the current experiment whose parameters we wish to know.
+     * @param args - N/A
      */
     template<> void InputCommandInter<InputCommandDisplayParams>::Execute(Experiment* experiment, std::string args){
         try {
-            std::cout << experiment->getName()<< std::endl;
-            PrintParameterTable(experiment);
+            printCP(experiment->getName() + "\n");
+            printCP(PrintParameterTable(experiment));
         }
         catch (...) {
-            std::cout << "Something went wrong..." << std::endl;
+            printCP("Something went wrong...\n");
         }
     }
 
@@ -344,9 +344,10 @@ namespace {
     template<> InputInstruction InputCommandInter<InputCommandQuit>::instruction = InputInstruction::Quit;
     template<> std::string InputCommandInter<InputCommandQuit>::docString = "Quit: Quits the program.";
     template<> std::string InputCommandInter<InputCommandQuit>::argString = "    Args: none";
-    /**
-     * @param experiment - Pointer to the current experiment whose parameter we are trying to read.
-     * @param args - String containing the text entered by the user after the instruction keyword.
+    /**Quits the program.
+     *
+     * @param experiment - N/A
+     * @param args - N/A
      */
     template<> void InputCommandInter<InputCommandQuit>::Execute(Experiment* experiment, std::string args){
         returnValue = RETURN_QUIT;
@@ -360,8 +361,8 @@ namespace {
 
 
 // Annoyingly, have to move this below the definitions of the functions, as template method in Input.h seems not to count.
-/**
- * Calls the appropriate function for each instruction, and passes the current experiment and additional args.
+
+/**Calls the appropriate function for each instruction, and passes the current experiment and additional args.
  *
  * @param instruction - The InputInstruction, e.g. as determined by FindInstructionFromString()
  * @param experiment - Pointer to the current experiment
@@ -398,7 +399,44 @@ static void CallInstructionFunction(InputInstruction instruction, Experiment* ex
             break;
         default:
             std::string errorMsg = "The InputInstruction \'"+  std::to_string(static_cast<int>(instruction)) + "\' is not implemented in \'CallInstructionFunction\' in Input.cpp";
-            std::cout << errorMsg << std::endl;
+            printCP(errorMsg + "\n");
             throw std::invalid_argument(errorMsg);
     }
 }
+
+
+static std::string TestANSICodes(){
+    // test ANSI codes
+    // Discovered that some console can more consistently parse the ansi codes if I merge multiple lines into a single string. Maybe a syncing problem?
+    std::stringstream printString;
+    printString << ansi_escape_codes::bold << "Test bold string" << ansi_escape_codes::reset << std::endl;
+    printString << ansi_escape_codes::faint << "Test faint string" << ansi_escape_codes::reset << std::endl;
+    printString << ansi_escape_codes::italic << "Test italic string" << ansi_escape_codes::reset << std::endl;
+    printString << ansi_escape_codes::underline << "Test underline string" << ansi_escape_codes::reset << std::endl;
+    printString << ansi_escape_codes::slow_blink << "Test slow blinking string" << ansi_escape_codes::reset << std::endl;
+    printString << ansi_escape_codes::rapid_blink << "Test rapid blinking string" << ansi_escape_codes::reset << std::endl;
+    printString << ansi_escape_codes::inverse << "Test inverse string" << ansi_escape_codes::reset << std::endl;
+    printString << ansi_escape_codes::conceal << "Test conceal string" << ansi_escape_codes::reset << std::endl;
+    printString << ansi_escape_codes::crossed_out << "Test crossed_out string" << ansi_escape_codes::reset << std::endl;
+
+    //colors!
+    printString << ansi_escape_codes::blue << "Test blue string" << ansi_escape_codes::reset << std::endl;
+    printString << ansi_escape_codes::cyan << "Test cyan string" << ansi_escape_codes::reset << std::endl;
+    printString << ansi_escape_codes::bright_blue << "Test \'bright blue\' string" << ansi_escape_codes::reset << std::endl;
+    printString << ansi_escape_codes::bold << ansi_escape_codes::blue << "Test bold blue string" << ansi_escape_codes::reset << std::endl;
+    printString << ansi_escape_codes::blue_bg << "Test blue background string" << ansi_escape_codes::reset << std::endl;
+    printString << ansi_escape_codes::cyan_bg << "Test cyan background string" << ansi_escape_codes::reset << std::endl;
+    printString << ansi_escape_codes::bright_blue_bg << "Test \'bright blue\' background string" << ansi_escape_codes::reset << std::endl;
+    printString << ansi_escape_codes::bold << ansi_escape_codes::blue_bg << "Test bold blue background string" << ansi_escape_codes::reset << std::endl;
+    printString << ansi_escape_codes::color_rgb(255,0,255) << "Test rgb Magenta string" <<ansi_escape_codes::reset << std::endl;
+    printString << ansi_escape_codes::color_rgb(255,0,255) << "Test rgb Magenta string " << ansi_escape_codes::color_bg_rgb(255,255,0) << "with rgb yellow background!" <<ansi_escape_codes::reset << std::endl;
+
+    //check reset and screen width!
+    printString << "Test normal string" << std::endl;
+    printString << "Test very long string to see if the text will loop at the edge of the window, or if it will break the formatting and run off the edge of the screen!" << std::endl;
+
+    return printString.str();
+}
+
+
+

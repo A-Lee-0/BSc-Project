@@ -1,12 +1,19 @@
 cmake_minimum_required(VERSION 3.6)
 project(SGCB)
 
+set(CMAKE_CONFIGURATION_TYPES="Debug;Release;ReleaseWin")
+
 set(SOURCE_FILES main.cpp)
 
 set(CMAKE_CXX_STANDARD 14)
 #Version number
 set(SGCB_VERSION_MAJOR 0)
 set(SGCB_VERSION_MINOR 1)
+
+if (WINBUILD)
+    message(STATUS "Defining WINBUILD=1")
+    add_definitions(-DWINBUILD=1)
+endif (WINBUILD)
 
 #Configuration for a header file to allow CMake variables to be passed to the source code
 configure_file(
@@ -26,5 +33,5 @@ add_subdirectory(src)
 
 add_executable( ${PROJECT_NAME} ${SOURCE_FILES} )
 
-target_link_libraries( ${PROJECT_NAME} core )
+target_link_libraries( ${PROJECT_NAME} PUBLIC core )
 

@@ -53,4 +53,4 @@ build
 *SGCB.xcodeproj*
 *.idea*
 cmake-build-debug/*
-release/*
+release*

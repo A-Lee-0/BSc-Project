@@ -19,7 +19,7 @@ class Experiment;
 
 //TODO consider moving these to be static member functions of Experiment. That way they're accessed with the Experiment:: 'namespace', which I'd prefer.
 Experiment * CreateExperiment(ExperimentList);
-void PrintParameterTable(Experiment *);
+std::string PrintParameterTable(Experiment *);
 
 enum class ParameterName {
     NumRounds,

@@ -7,19 +7,26 @@
 
 #include "Experiment.h"
 
+
 // public functions to call
 namespace Input {
+// No longer trying to use curses, as I cannot verify if it works on a unix-style console (Mintty).
+//    extern bool USE_CURSES_CONSOLE;     // flag to be set to tell the module whether to use curses or regular console.
+    extern bool TEST_ANSI;               // flag for if to output the ANSI test strings.
     bool ProcessInput(Experiment*);
+
+
 }
+
 // anonymous namespace to keep InputInstruction from being exposed outside Input.
 namespace{ enum class InputInstruction; }
 
 static std::pair<InputInstruction,std::string> FindInstructionFromString(std::string input);
 static void CallInstructionFunction(InputInstruction instruction, Experiment* experiment, std::string args);
 
-
 // anonymous namespace to keep internal Command classes from being exposed outside Input.
 namespace {
+
     class InputCommand {
     public:
         virtual std::vector<std::string> getKeywords();
@@ -82,4 +89,7 @@ namespace {
         std::string message;
     };
 }
+
+static std::string TestANSICodes();
+
 #endif //SGCB_INPUT_H

@@ -4,6 +4,7 @@
 #include <random>
 #include <ctime>
 
+#include "Console.h"
 #include "Input.h"
 #include "SGCB_Config.h"
 //#include "Experiment.h"
@@ -16,15 +17,23 @@ boost::random::mt19937 gen(static_cast<unsigned int>(std::time(&startTime_main))
 
 
 int main() {
-    std::cout << "From Simple Games to Complex Behaviour\n"
-              << "Written by Samuel Kirby and Andrew Lee for BSc Project supervised by Dr Dave Clements\n"
-              << "Version: " << VERSION_MAJOR << "." << VERSION_MINOR << std::endl;
+    // Try set initial console dimensions. Works on Mintty and WindowsConsole, but not supported in Windows Terminal.
+    Console::SetSize(40,100);
+
+    std::stringstream printString;
+    printString << "From Simple Games to Complex Behaviour\n"
+                << "Written by Samuel Kirby and Andrew Lee for BSc Project supervised by Dr Dave Clements\n"
+                << "Version: " << VERSION_MAJOR << "." << VERSION_MINOR << std::endl;
+    printCP(printString.str());
+
+    //Console::DEBUG_PRINT_INPUT_HEX = true;
 
 
     time_t t = time(0);   // get time now
     struct tm * now = localtime( & t );
-    std::cout << "Time: " << (now->tm_year + 1900) << '-' << (now->tm_mon + 1) << '-' << now->tm_mday << ' '
-              << now->tm_hour << ':' << now->tm_min << ':' << now->tm_sec << std::endl;
+    char datetime[20];
+    strftime(datetime,20,"%Y-%m-%d %H:%M",now);
+    printCP("Time: " + std::string(datetime) + "\n");
 
     //init RNGs
     Strategy::SetRNG(gen);
@@ -36,7 +45,7 @@ int main() {
     experiment->SetParameter("RepeatExperiments","10");
     //experiment->SetParameter("MaxGPR","3");
 
-
+    //Input::TEST_ANSI = true;
 
     bool inputting = true;
     while (inputting){

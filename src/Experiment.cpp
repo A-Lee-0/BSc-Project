@@ -308,16 +308,18 @@ ConsoleReturn Experiment::_SetFoundBool(ParameterName param, bool newValue){
 
 }
 
-void PrintParameterTable(Experiment * ex){
+std::string PrintParameterTable(Experiment * ex){
+    std::stringstream printString;
     std::vector<std::string> paramNames = ListParameterNames(ex);
     ulong maxLength = 0;
     for (std::string name : paramNames) {
         if (name.length() > maxLength) { maxLength = name.length(); }
     }
-    std::cout << "    " << "Param" << std::string(2+maxLength-5,' ') << "Value" << std::endl;
+    printString << "    " << "Param" << std::string(2+maxLength-5,' ') << "Value" << std::endl;
     for (std::string name : paramNames){
         ParameterName param = parameterEnumMap.at(name);
         std::string value = ex->GetParameter(param);
-        std::cout << "    " << name << std::string(2+maxLength-name.length(),' ') << value << std::endl;
+        printString << "    " << name << std::string(2+maxLength-name.length(),' ') << value << std::endl;
     }
+    return printString.str();
 }

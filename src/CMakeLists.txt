@@ -1,6 +1,10 @@
 cmake_minimum_required(VERSION 3.6)
-set(CORE_SOURCE_FILES Network.cpp Strategy.cpp Game.cpp Drawing.cpp Update.cpp Experiment.cpp Input.cpp)
+set(CORE_SOURCE_FILES Network.cpp Strategy.cpp Game.cpp Drawing.cpp Update.cpp Experiment.cpp Input.cpp Console.cpp)
 add_library(core ${CORE_SOURCE_FILES})
+
+if (WINBUILD)
+    add_definitions(-DWINBUILD=1)
+endif (WINBUILD)
 
 find_package(ImageMagick REQUIRED COMPONENTS Magick++ MagickCore MagickWand)
 if(ImageMagick_FOUND)
@@ -27,3 +31,12 @@ endif()
 if (Boost_FOUND)
     target_link_libraries(core ${Boost_LIBRARIES})
 endif()
+
+
+find_path(PDC_INCLUDES curses.h)
+find_library(PDC_LIBS pdcurses REQUIRED)
+
+message(STATUS "PDCurses_INCLUDES: ${PDC_INCLUDES}")
+message(STATUS "PDCurses_LIBRARIES: ${PDC_LIBS}")
+target_include_directories(core PRIVATE ${PDC_INCLUDES})
+target_link_libraries(core ${PDC_LIBS})
