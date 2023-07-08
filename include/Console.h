@@ -24,8 +24,10 @@ namespace Console {
 namespace {
     static void InitialiseConsole();
     static int SetConsoleModeBlocking(bool blocking);
+    static int RestoreConsoleMode();
     static bool _SetSize();
     static std::pair<uint, uint> _SetCursorPos(int row, int column);
+    static char rawReadCharCP();
 }
 
 // Internal variables

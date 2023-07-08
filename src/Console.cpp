@@ -1,13 +1,13 @@
 //
 // Created by Andrew Lee on 07/07/2023.
 //
+
+//#define WINBUILD 1
+
 #include "Console.h"
-#include <string>
 #include <iostream>
 #include <boost/algorithm/string.hpp>
 
-
-//#include <windows.h>
 
 #ifdef WINBUILD
 #  include <windows.h>
@@ -25,6 +25,15 @@ inline unsigned int to_uint(char ch)
 {
     return static_cast<unsigned int>(static_cast<unsigned char>(ch));
 }
+
+
+// Variables to store previous state.
+#ifdef WINBUILD
+    HANDLE hStdin = GetStdHandle(STD_INPUT_HANDLE);
+    DWORD prevInputMode;
+#else
+    termios prevAttr;
+#endif
 
 
 // Public functions ----------------------------------------------------------------------------------------------------
@@ -73,7 +82,7 @@ namespace Console{
         consoleCols = columns;
         //printCP("\e[8;" + std::to_string(rows) + ";" + std::to_string(columns) + "t");
         return _SetSize();
-    };
+    }
 
     /**Returns the size of the current terminal in characters.
      *
@@ -87,8 +96,7 @@ namespace Console{
         std::pair<uint,uint>  maxCursorPos = Console::GetCursorPos();
         _SetCursorPos(currentCursorPos.first,currentCursorPos.second);
         return maxCursorPos;
-    };
-
+    }
 
     std::string GetInput(){
         //Temporary solution. Want to redo this to handle ANSI codes (e.g. arrow keys) etc.
@@ -125,54 +133,25 @@ namespace Console{
 
         std::stringstream returnString;
 
-    #ifdef WINBUILD
-        // Temporarily set the stdin ENABLE_LINE_INPUT flag to false using SetConsoleMode.
+        // Temporarily but terminal in 'raw' mode, reading every character as they come
         SetConsoleModeBlocking(false);
-        HANDLE hStdin = GetStdHandle(STD_INPUT_HANDLE);
+
         char readChar;
-        uint charsRead;
-        ReadConsole(hStdin,&readChar,1,&charsRead,NULL);
+        readChar = rawReadCharCP();
         if (readChar != '\e'){
             throw std::runtime_error("Incorrect return character during Console::GetCursorPos");
         }
         int maxChars = 15;  // the minimum chars for this would be 6. To hit would need >10000x10000 char-sized console!
         for(int i=0; i<maxChars; i++) {
-            ReadConsole(hStdin,&readChar,1,&charsRead,NULL);;
+            readChar = rawReadCharCP();
             returnString << readChar;
             if (readChar == 'R'){
                 i=16;
             }
         }
-        // Reset the stdin ENABLE_LINE_INPUT flag.
-        SetConsoleModeBlocking(true);
-    #else
 
-        // based off https://stackoverflow.com/questions/6698161/getting-raw-input-from-console-using-c-or-c
-        termios oldAttr;
-        termios newAttr;
-        tcgetattr(0,&oldAttr);
-        newAttr = oldAttr;
-        newAttr.c_lflag &= ~ICANON; //clear ICANON flag
-        tcsetattr(0, TCSANOW, &newAttr);
+        RestoreConsoleMode();   // Restore terminal to previous state.
 
-        char readChar;
-        readChar = fgetc(stdin);
-        if (readChar != '\e'){
-            throw std::runtime_error("Incorrect return character during Console::GetCursorPos");
-        }
-        bool reading = true;
-        while (reading) {
-            readChar = fgetc(stdin);
-            returnString << readChar;
-            if (readChar == 'R'){
-                reading = false;
-            }
-        }
-
-        // Reset back to original attributes.
-        tcsetattr(0, TCSANOW, &oldAttr);
-
-    #endif
         rawInput = returnString.str();
         ulong start = rawInput.find("[")+1;
         ulong mid = rawInput.find(";");
@@ -183,7 +162,7 @@ namespace Console{
 
         std::pair<int,int> returnValue = {std::stoi(rowStr),std::stoi(colStr)};
         return returnValue;
-    };
+    }
 }
 
 
@@ -208,14 +187,14 @@ namespace {
     #endif
 
         CONSOLE_INIT_RUN = true;
-    };
+    }
 
     int SetConsoleModeBlocking(bool blocking){
         int returnValue = 0;
     #ifdef WINBUILD
-        HANDLE hStdin = GetStdHandle(STD_INPUT_HANDLE);
         DWORD inputMode;
         GetConsoleMode(hStdin, &inputMode);
+        prevInputMode = inputMode;  //
         //printCP("InputMode was " + std::to_string(inputMode) + "\n");
         if (blocking){
             inputMode |= ENABLE_LINE_INPUT;
@@ -229,12 +208,45 @@ namespace {
         //printCP("Tried to set InputMode to " + std::to_string(inputMode) + ". returning " + std::to_string(returnValue) + "\n");
         if (returnValue == 0){
             DWORD errorCode = GetLastError();
-            printCP("Error code: " + std::to_string(errorCode) + "\n");
+            printCP("Error during SetConsoleModeBlocking. Mode: " + std::to_string(inputMode) + ":  Error Code: " + std::to_string(errorCode) + "\n");
         }
     #else
-
+        // based off https://stackoverflow.com/questions/6698161/getting-raw-input-from-console-using-c-or-c
+        termios attr;
+        tcgetattr(0,&attr); // Read current attributes
+        prevAttr = attr;    // Save current attributes
+        if (blocking){
+            attr.c_lflag |= ICANON;    //set Canonical Mode flag
+        }
+        else{
+            attr.c_lflag &= ~ICANON;    //clear Canonical Mode flag
+        }
+        returnValue = tcsetattr(0, TCSANOW, &attr);   // Immediately set the new attributes to the terminal
+        if (returnValue != 0){
+            int errorCode = errno;
+            printCP("Error during SetConsoleModeBlocking. Attr.c_lflag: " + std::to_string(attr.c_lflag) + ":  Error Code: " + std::to_string(errorCode) + "\n");
+        }
+        returnValue += 1;   // shift from -1 error, to 0 error, so that it matches the Windows error.
     #endif
+        return returnValue;
+    }
 
+    int RestoreConsoleMode(){
+        int returnValue = 0;
+    #ifdef WINBUILD
+        returnValue = SetConsoleMode(hStdin,prevInputMode);
+        if (returnValue == 0){
+            DWORD errorCode = GetLastError();
+            printCP("Error during RestoreConsoleMode. Mode: " + std::to_string(prevInputMode) + ":  Error Code: " + std::to_string(errorCode) + "\n");
+        }
+    #else
+        returnValue = tcsetattr(0, TCSANOW, &prevAttr);
+        if (returnValue != 0){
+            int errorCode = errno;
+            printCP("Error during SetConsoleModeBlocking. Attr.c_lflag: " + std::to_string(prevAttr.c_lflag) + ":  Error Code: " + std::to_string(errorCode) + "\n");
+        }
+        returnValue += 1;   // shift from -1 error, to 0 error, so that it matches the Windows error.
+    #endif
         return returnValue;
     }
 
@@ -248,12 +260,23 @@ namespace {
         printCP("\e[8;" + std::to_string(consoleRows) + ";" + std::to_string(consoleCols) + "t");
         bool returnValue = false;
         return returnValue;
-    };
+    }
 
     std::pair<uint,uint> _SetCursorPos(int row, int column){
         printCP("\e[" + std::to_string(row) + ";" + std::to_string(column) + "H");
         return Console::GetCursorPos();
-    };
+    }
 
+    // Crossplatform function to read a single character when the terminal is in 'raw' mode.
+    char rawReadCharCP(){
+        char returnValue;
+    #ifdef WINBUILD
+        uint charsRead;
+        ReadConsole(hStdin,&returnValue,1,&charsRead,NULL);
+    #else
+        returnValue = fgetc(stdin);
+    #endif
+        return returnValue;
+    }
 }
 
