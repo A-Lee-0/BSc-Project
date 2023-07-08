@@ -133,13 +133,32 @@ std::pair<InputInstruction,std::string> FindInstructionFromString(std::string in
 }
 
 namespace {
+    /**Prints the Help text associated with the given command. Used in  InputCommandInter<InputCommandHelp>::Execute()
+     *
+     * @param command - The command to print the Help text for.
+     */
+    void PrintInstructionHelp(InputCommand* command){
+        // output instruction name and what it does
+        printCP(command->getDocString() + "\n");
+
+        // output the keyword options to use the instruction
+        std::string keys = "  Commands: ";
+        for (auto key : command->getKeywords()) {
+            keys += "\'" + key + "\', ";
+        }
+        std::string fullKeys = keys.substr(0, keys.size() - 2);
+        printCP(fullKeys + "\n");
+
+        // output the optional parameters for the instruction.
+        printCP(command->getArgString() + "\n");
+    }
 
     template<> InputInstruction InputCommandInter<InputCommandHelp>::instruction = InputInstruction::Help;
-    template<> std::string InputCommandInter<InputCommandHelp>::docString = "Help: Prints details of all instructions.";
-    template<> std::string InputCommandInter<InputCommandHelp>::argString = "    Args: none";
+    template<> std::string InputCommandInter<InputCommandHelp>::docString = "Help: Prints details of all instructions, or just the instruction indicated by commandString.";
+    template<> std::string InputCommandInter<InputCommandHelp>::argString = "    Args: [commandString]";
     /**
-     * @param experiment - Pointer to the experiment whose parameter we are trying to set.
-     * @param args - String containing the text entered by the user after the instruction keyword.
+     * @param experiment - Pointer to the current experiment.
+     * @param args - String containing the remaining text from the input after the 'help' command. If it starts with a commandString, print only that docString.
      */
     template<> void InputCommandInter<InputCommandHelp>::Execute(Experiment* experiment, std::string args) {
         //std::map<InputInstruction, std::list<std::string>> reverseKeywordLookup;
@@ -147,25 +166,42 @@ namespace {
         uint printWidth = Console::GetSize().second;
         std::string divider = std::string(printWidth, '-') + "\n";
 
-        // print details for each instruction
-        for(auto command : inputCommands){
-            // output dividing line between instructions
-            printCP(divider);
+        // If args is not blank, test to see if it contains an Instruction String. If it does, only show docstring for
+        // that instruction.
+        bool listAllInstructions = true;
+        InputInstruction instruction;
+        if (args != "") {
 
-            // output instruction name and what it does
-            printCP(command->getDocString() + "\n");
-
-            // output the keyword options to use the instruction
-            std::string keys = "  Commands: ";
-            for (auto key : command->getKeywords()){
-                keys += "\'" + key + "\', ";
+            std::pair<InputInstruction, std::string> parsedInput;
+            try {
+                parsedInput = FindInstructionFromString(args);
+                instruction = parsedInput.first;
+                listAllInstructions = false;
             }
-            std::string fullKeys = keys.substr(0, keys.size()-2);
-            printCP(fullKeys + "\n");
+            catch (UnknownInstruction) {
 
-            // output the optional parameters for the instruction.
-            printCP(command->getArgString() + "\n");
+            }
+        }
 
+        if (listAllInstructions) {
+            // print details for each instruction
+            for (auto command : inputCommands) {
+                // output dividing line between instructions
+                printCP(divider);
+
+                // print the Help text for the command
+                PrintInstructionHelp(command);
+
+
+            }
+        }
+        else{
+            for (auto command : inputCommands){
+                if (command->getInstruction() == instruction){
+                    // print the Help text for the command
+                    PrintInstructionHelp(command);
+                }
+            }
         }
     }
 
@@ -357,6 +393,7 @@ namespace {
     template<class T> std::vector<std::string> InputCommandInter<T>::getKeywords() { return keywords; }
     template<class T> std::string InputCommandInter<T>::getDocString(){ return docString; }
     template<class T> std::string InputCommandInter<T>::getArgString(){ return argString; }
+    template<class T> InputInstruction InputCommandInter<T>::getInstruction(){ return instruction; }
 }
 
 

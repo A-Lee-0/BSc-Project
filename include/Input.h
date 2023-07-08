@@ -34,6 +34,8 @@ namespace {
         virtual std::string getDocString();
 
         virtual std::string getArgString();
+
+        virtual InputInstruction getInstruction();
     };
 
     std::map<std::string, InputInstruction> InputInstructionKeywords;        // Map to hold the allowed strings for each input instruction.
@@ -56,6 +58,8 @@ namespace {
         std::string getDocString();
 
         std::string getArgString();
+
+        InputInstruction getInstruction();
 
         //InputCommandInter(){ inputCommands.push_back(this); };
         InputCommandInter(std::vector<std::string> newKeywords) {
